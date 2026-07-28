@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobS | Book a Trusted Pro</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="brand">
+    <div class="brand-mark">J</div>
+    <div>
+      <h1>JobS</h1>
+      <span class="sub">Pro contractors &amp; repairs</span>
+    </div>
+  </div>
+  <nav class="site-nav">
+    <a href="/" class="current">Find a Pro</a>
+    <a href="/admin">Admin Portal</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="eyebrow">Verified pros, real portfolios</span>
+    <h2>Book the right contractor, not a stranger</h2>
+    <p>Browse masons, plumbers, painters, carpenters, interior decorators and AC installers — see their past work before you book.</p>
+  </div>
+
+  <div class="control-bar">
+    <form class="search-box" action="/" method="get">
+      {% if selected_trade and selected_trade != 'All' %}<input type="hidden" name="trade" value="{{ selected_trade }}">{% endif %}
+      <input type="text" name="q" placeholder="Search by name..." value="{{ search_query or '' }}">
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="trade-chips">
+      <a href="/" class="chip {% if not selected_trade or selected_trade == 'All' %}active{% endif %}">All trades</a>
+      {% for t in trades %}
+      <a href="/?trade={{ t|urlencode }}" class="chip {% if selected_trade == t %}active{% endif %}">{{ t }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="grid">
+    {% for worker in workers %}
+    <div class="pro-card">
+      <div class="pro-photo-wrap">
+        {% if worker.photo_url %}
+          <img src="{{ worker.photo_url }}" alt="{{ worker.name }}">
+        {% else %}
+          <div class="pro-avatar-fallback">{{ worker.initials }}</div>
+        {% endif %}
+        <div class="seal" title="Verified pro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+      <div class="pro-body">
+        <span class="trade-badge">{{ worker.trade }}</span>
+        <h3>{{ worker.name }}</h3>
+        <div class="pro-meta">
+          <span><strong>{{ worker.experience_years }}</strong> yrs experience</span>
+        </div>
+
+        {% if worker.portfolio_images %}
+        <div class="portfolio-strip">
+          {% for img in worker.portfolio_images[:3] %}
+            <img src="{{ img.url }}" alt="Portfolio">
+          {% endfor %}
+          {% if worker.portfolio_images|length > 3 %}
+            <div class="more">+{{ worker.portfolio_images|length - 3 }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="pro-actions">
+          <div class="rate">${{ '%.0f'|format(worker.hourly_rate) }}<span>/hr</span></div>
+          {% if worker.portfolio_images %}
+          <button class="btn-view" onclick="openPortfolio({{ worker.id }}, '{{ worker.name|e }}')">Portfolio</button>
+          {% endif %}
+          <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}')">Book</button>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <strong>No pros match this search yet</strong>
+      Try a different trade category, or check back soon.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<footer class="site-foot">JobS — connecting clients with verified contractors and repair pros.</footer>
+
+<!-- Booking modal -->
+<div id="bookingModal" class="modal">
+  <div class="modal-card">
+    <h3 id="modalTitle">Book pro</h3>
+    <p class="modal-sub">Fill in your details and we'll confirm the booking with the pro.</p>
+    <form action="/book" method="POST">
+      <input type="hidden" name="worker_id" id="modalWorkerId">
+      <div class="field"><label>Your name</label><input type="text" name="client_name" required></div>
+      <div class="field"><label>Phone number</label><input type="tel" name="client_phone" required></div>
+      <div class="field"><label>Service address</label><textarea name="service_address" rows="3" required></textarea></div>
+      <div class="field"><label>Preferred date</label><input type="date" name="booking_date" required></div>
+      <div class="btn-row">
+        <button type="submit" class="btn-solid">Submit booking</button>
+        <button type="button" class="btn-ghost" onclick="closeBookingModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Portfolio modal -->
+<div id="portfolioModal" class="modal">
+  <div class="modal-card wide">
+    <h3 id="portfolioTitle">Portfolio</h3>
+    <p class="modal-sub">Past work from this pro.</p>
+    <div class="portfolio-gallery" id="portfolioGallery"></div>
+    <div class="btn-row">
+      <button type="button" class="btn-ghost" onclick="closePortfolio()" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openBookingModal(id, name, trade) {
+  document.getElementById('modalWorkerId').value = id;
+  document.getElementById('modalTitle').innerText = 'Book ' + name + ' — ' + trade;
+  document.getElementById('bookingModal').style.display = 'flex';
+}
+function closeBookingModal() { document.getElementById('bookingModal').style.display = 'none'; }
+
+function openPortfolio(workerId, name) {
+  document.getElementById('portfolioTitle').innerText = name + "'s Portfolio";
+  const gallery = document.getElementById('portfolioGallery');
+  gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">Loading...</p>';
+  document.getElementById('portfolioModal').style.display = 'flex';
+  fetch('/api/worker/' + workerId + '/portfolio')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.images.length) {
+        gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">No portfolio photos yet.</p>';
+        return;
+      }
+      gallery.innerHTML = data.images.map(img => `<img src="${img.url}" alt="${img.caption || 'Portfolio photo'}">`).join('');
+    });
+}
+function closePortfolio() { document.getElementById('portfolioModal').style.display = 'none'; }
+
+[document.getElementById('bookingModal'), document.getElementById('portfolioModal')].forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+});
+</script>
+</body>
+</html>

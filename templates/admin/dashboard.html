@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | JobS</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="brand">
+    <div class="brand-mark">J</div>
+    <div><h1>JobS Admin</h1><span class="sub">Roster &amp; bookings</span></div>
+  </div>
+  <nav class="site-nav">
+    <a href="/">Client Site</a>
+    <a href="/admin" class="current">Admin</a>
+  </nav>
+</header>
+
+<div class="wrap" style="padding-top: 1.5rem;">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="admin-topbar">
+    <h2>Worker roster ({{ workers|length }})</h2>
+    <a href="{{ url_for('add_worker') }}" class="btn-solid" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">+ Add worker</a>
+  </div>
+
+  <div class="panel" style="margin-top:0;">
+    <table class="ledger">
+      <thead>
+        <tr><th>Photo</th><th>Name</th><th>Trade</th><th>Phone</th><th>Rate</th><th>Experience</th><th>Status</th><th>Portfolio</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for worker in workers %}
+        <tr>
+          <td>
+            {% if worker.photo_url %}
+              <img src="{{ worker.photo_url }}" class="row-photo" alt="{{ worker.name }}">
+            {% else %}
+              <span class="row-avatar-fallback">{{ worker.initials }}</span>
+            {% endif %}
+          </td>
+          <td>{{ worker.name }}</td>
+          <td>{{ worker.trade }}</td>
+          <td>{{ worker.phone }}</td>
+          <td>${{ '%.2f'|format(worker.hourly_rate) }}/hr</td>
+          <td>{{ worker.experience_years }} yrs</td>
+          <td><span class="pill {{ 'available' if worker.status == 'Available' else 'booked' }}">{{ worker.status }}</span></td>
+          <td>{{ worker.portfolio_images|length }} photo{{ 's' if worker.portfolio_images|length != 1 else '' }}</td>
+          <td>
+            <div class="row-actions">
+              <a class="icon-btn" href="{{ url_for('edit_worker', worker_id=worker.id) }}" title="Edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </a>
+              <form action="{{ url_for('delete_worker', worker_id=worker.id) }}" method="POST" onsubmit="return confirm('Remove {{ worker.name|e }} from the roster? This cannot be undone.');">
+                <button type="submit" class="icon-btn danger" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" style="text-align:center;">No workers registered yet. Add your first pro above.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-topbar">
+    <h2>Booking requests ({{ bookings|length }})</h2>
+  </div>
+  <div class="panel" style="margin-top:0;">
+    <table class="ledger">
+      <thead>
+        <tr><th>ID</th><th>Client</th><th>Phone</th><th>Worker</th><th>Trade</th><th>Address</th><th>Date</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for booking in bookings %}
+        <tr>
+          <td>#{{ booking.id }}</td>
+          <td>{{ booking.client_name }}</td>
+          <td>{{ booking.client_phone }}</td>
+          <td>{{ booking.worker.name }}</td>
+          <td>{{ booking.worker.trade }}</td>
+          <td>{{ booking.service_address }}</td>
+          <td>{{ booking.booking_date }}</td>
+          <td><span class="pill {{ 'confirmed' if booking.status == 'Confirmed' else 'pending' }}">{{ booking.status }}</span></td>
+          <td>
+            {% if booking.status != 'Confirmed' %}
+            <form action="{{ url_for('confirm_booking', booking_id=booking.id) }}" method="POST">
+              <button type="submit" class="btn-ghost" style="padding:0.35rem 0.7rem; font-size:0.78rem;">Confirm</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" style="text-align:center;">No orders received yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer class="site-foot">JobS Admin — internal use only.</footer>
+
+</body>
+</html>

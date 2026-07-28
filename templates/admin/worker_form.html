@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ 'Edit' if worker else 'Add' }} Worker | JobS Admin</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="brand">
+    <div class="brand-mark">J</div>
+    <div><h1>JobS Admin</h1><span class="sub">Roster &amp; bookings</span></div>
+  </div>
+  <nav class="site-nav">
+    <a href="/">Client Site</a>
+    <a href="/admin">Admin</a>
+  </nav>
+</header>
+
+<div class="wrap" style="padding-top: 1.5rem; max-width: 760px;">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="admin-topbar">
+    <h2>{{ 'Edit ' + worker.name if worker else 'Add a new worker' }}</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost" style="text-decoration:none; display:inline-block;">← Back to roster</a>
+  </div>
+
+  <div class="panel" style="margin-top:0;">
+    <form action="{{ url_for('edit_worker', worker_id=worker.id) if worker else url_for('add_worker') }}" method="POST" enctype="multipart/form-data">
+      <div class="form-grid">
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" name="name" value="{{ worker.name if worker else '' }}" placeholder="e.g. John Doe" required>
+        </div>
+        <div class="field">
+          <label>Trade</label>
+          <select name="trade" required>
+            {% for t in trades %}
+            <option value="{{ t }}" {% if worker and worker.trade == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Phone number</label>
+          <input type="tel" name="phone" value="{{ worker.phone if worker else '' }}" placeholder="e.g. +233 20 000 0000" required>
+        </div>
+        <div class="field">
+          <label>Hourly rate ($)</label>
+          <input type="number" step="0.01" name="hourly_rate" value="{{ worker.hourly_rate if worker else '' }}" placeholder="e.g. 45.00" required>
+        </div>
+        <div class="field">
+          <label>Experience (years)</label>
+          <input type="number" name="experience_years" value="{{ worker.experience_years if worker else '' }}" placeholder="e.g. 5" required>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select name="status">
+            <option value="Available" {% if worker and worker.status == 'Available' %}selected{% endif %}>Available</option>
+            <option value="Booked" {% if worker and worker.status == 'Booked' %}selected{% endif %}>Booked</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Short bio</label>
+        <textarea name="bio" rows="3" placeholder="A line or two about their specialty...">{{ worker.bio if worker else '' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Profile picture</label>
+        {% if worker and worker.photo_url %}
+          <div style="margin-bottom:0.6rem;"><img src="{{ worker.photo_url }}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:1px solid var(--rule);"></div>
+        {% endif %}
+        <input type="file" name="photo" accept="image/*">
+        <small>{{ 'Upload a new photo to replace the current one.' if worker else 'JPG, PNG or WEBP.' }}</small>
+      </div>
+
+      {% if worker and worker.portfolio_images %}
+      <div class="field">
+        <label>Current portfolio photos</label>
+        <div class="thumb-manager">
+          {% for img in worker.portfolio_images %}
+          <div class="thumb-item">
+            <img src="{{ img.url }}" alt="Portfolio photo">
+            <form action="{{ url_for('delete_portfolio_image', image_id=img.id) }}" method="POST" onsubmit="return confirm('Remove this portfolio photo?');" style="display:inline;">
+              <button type="submit" class="thumb-remove" title="Remove">×</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="field">
+        <label>{{ 'Add more portfolio photos' if worker else 'Portfolio photos' }}</label>
+        <input type="file" name="portfolio_images" accept="image/*" multiple>
+        <small>Select multiple photos of past work — clients see these before booking.</small>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="btn-solid">{{ 'Save changes' if worker else 'Add worker' }}</button>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost" style="text-decoration:none; text-align:center;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer class="site-foot">JobS Admin — internal use only.</footer>
+
+</body>
+</html>
