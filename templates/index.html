@@ -17,8 +17,8 @@
     </div>
   </div>
   <nav class="site-nav">
-    <a href="/" class="current">Find a Pro</a>
-    <a href="/admin">Admin Portal</a>
+    <a href="/" class="current">Home</a>
+    <a href="/admin">Admin </a>
   </nav>
 </header>
 
@@ -26,8 +26,7 @@
 
   <div class="hero">
     <span class="eyebrow">Verified pros, real portfolios</span>
-    <h2>Book the right contractor, not a stranger</h2>
-    <p>Browse masons, plumbers, painters, carpenters, interior decorators and AC installers — see their past work before you book.</p>
+    <h2>Book professionals now</h2>
   </div>
 
   <div class="control-bar">
@@ -85,11 +84,29 @@
         {% endif %}
 
         <div class="pro-actions">
-          <div class="rate">${{ '%.0f'|format(worker.hourly_rate) }}<span>/hr</span></div>
-          {% if worker.portfolio_images %}
-          <button class="btn-view" onclick="openPortfolio({{ worker.id }}, '{{ worker.name|e }}')">Portfolio</button>
-          {% endif %}
+          <button class="btn-info" type="button">Info</button>
           <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}')">Book</button>
+        </div>
+        <div class="worker-info-panel">
+          <div class="worker-info-row">
+            <span class="worker-info-label">Name</span>
+            <span>{{ worker.name }}</span>
+          </div>
+          <div class="worker-info-row">
+            <span class="worker-info-label">Experience</span>
+            <span>{{ worker.experience_years }} years</span>
+          </div>
+          <div class="worker-info-row">
+            <span class="worker-info-label">Location</span>
+            <span>{{ worker.location or 'Not provided' }}</span>
+          </div>
+          {% if worker.portfolio_images %}
+          <div class="mini-portfolio">
+            {% for img in worker.portfolio_images[:4] %}
+              <img src="{{ img.url }}" alt="Portfolio photo">
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -54,8 +54,8 @@
           <input type="tel" name="phone" value="{{ worker.phone if worker else '' }}" placeholder="e.g. +233 20 000 0000" required>
         </div>
         <div class="field">
-          <label>Hourly rate ($)</label>
-          <input type="number" step="0.01" name="hourly_rate" value="{{ worker.hourly_rate if worker else '' }}" placeholder="e.g. 45.00" required>
+          <label>Location</label>
+          <input type="text" name="location" value="{{ worker.location if worker else '' }}" placeholder="e.g. Accra, Ghana">
         </div>
         <div class="field">
           <label>Experience (years)</label>

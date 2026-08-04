@@ -2,6 +2,7 @@ import os
 import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect, text
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -35,7 +36,7 @@ os.makedirs(PORTFOLIO_DIR, exist_ok=True)
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB uploads
 
-TRADES = ['Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
+TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
 
 db = SQLAlchemy(app)
 
@@ -47,6 +48,7 @@ class Worker(db.Model):
     name = db.Column(db.String(100), nullable=False)
     trade = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
+    location = db.Column(db.String(120), nullable=True)
     experience_years = db.Column(db.Integer, nullable=False)
     bio = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default='Available')
@@ -172,6 +174,7 @@ def add_worker():
             name=request.form.get('name'),
             trade=request.form.get('trade'),
             phone=request.form.get('phone'),
+            location=request.form.get('location'),
             experience_years=int(request.form.get('experience_years')),
             bio=request.form.get('bio'),
             status=request.form.get('status', 'Available'),
@@ -200,6 +203,7 @@ def edit_worker(worker_id):
         worker.name = request.form.get('name')
         worker.trade = request.form.get('trade')
         worker.phone = request.form.get('phone')
+        worker.location = request.form.get('location')
         worker.experience_years = int(request.form.get('experience_years'))
         worker.bio = request.form.get('bio')
         worker.status = request.form.get('status', 'Available')
@@ -265,9 +269,21 @@ def worker_portfolio_json(worker_id):
     })
 
 
+def ensure_worker_columns():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if 'workers' not in inspector.get_table_names():
+            return
+        columns = {column['name'] for column in inspector.get_columns('workers')}
+        if 'location' not in columns:
+            db.session.execute(text("ALTER TABLE workers ADD COLUMN location VARCHAR(120)"))
+            db.session.commit()
+
+
 def init_db():
     with app.app_context():
         db.create_all()
+        ensure_worker_columns()
 
 
 init_db()

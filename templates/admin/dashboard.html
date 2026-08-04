@@ -37,7 +37,7 @@
   <div class="panel" style="margin-top:0;">
     <table class="ledger">
       <thead>
-        <tr><th>Photo</th><th>Name</th><th>Trade</th><th>Phone</th><th>Rate</th><th>Experience</th><th>Status</th><th>Portfolio</th><th>Actions</th></tr>
+        <tr><th>Photo</th><th>Name</th><th>Trade</th><th>Phone</th><th>Experience</th><th>Status</th><th>Portfolio</th><th>Actions</th></tr>
       </thead>
       <tbody>
         {% for worker in workers %}
@@ -52,7 +52,6 @@
           <td>{{ worker.name }}</td>
           <td>{{ worker.trade }}</td>
           <td>{{ worker.phone }}</td>
-          <td>${{ '%.2f'|format(worker.hourly_rate) }}/hr</td>
           <td>{{ worker.experience_years }} yrs</td>
           <td><span class="pill {{ 'available' if worker.status == 'Available' else 'booked' }}">{{ worker.status }}</span></td>
           <td>{{ worker.portfolio_images|length }} photo{{ 's' if worker.portfolio_images|length != 1 else '' }}</td>
@@ -70,7 +69,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="9" style="text-align:center;">No workers registered yet. Add your first pro above.</td></tr>
+        <tr><td colspan="8" style="text-align:center;">No workers registered yet. Add your first pro above.</td></tr>
         {% endfor %}
       </tbody>
     </table>
