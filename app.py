@@ -47,7 +47,6 @@ class Worker(db.Model):
     name = db.Column(db.String(100), nullable=False)
     trade = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
-    hourly_rate = db.Column(db.Float, nullable=False)
     experience_years = db.Column(db.Integer, nullable=False)
     bio = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default='Available')
@@ -173,7 +172,6 @@ def add_worker():
             name=request.form.get('name'),
             trade=request.form.get('trade'),
             phone=request.form.get('phone'),
-            hourly_rate=float(request.form.get('hourly_rate')),
             experience_years=int(request.form.get('experience_years')),
             bio=request.form.get('bio'),
             status=request.form.get('status', 'Available'),
@@ -202,7 +200,6 @@ def edit_worker(worker_id):
         worker.name = request.form.get('name')
         worker.trade = request.form.get('trade')
         worker.phone = request.form.get('phone')
-        worker.hourly_rate = float(request.form.get('hourly_rate'))
         worker.experience_years = int(request.form.get('experience_years'))
         worker.bio = request.form.get('bio')
         worker.status = request.form.get('status', 'Available')
