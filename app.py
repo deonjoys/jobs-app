@@ -49,6 +49,7 @@ class Worker(db.Model):
     trade = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     location = db.Column(db.String(120), nullable=True)
+    hourly_rate = db.Column(db.Float, nullable=True, default=0)
     experience_years = db.Column(db.Integer, nullable=False)
     bio = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default='Available')
@@ -175,6 +176,7 @@ def add_worker():
             trade=request.form.get('trade'),
             phone=request.form.get('phone'),
             location=request.form.get('location'),
+            hourly_rate=0,
             experience_years=int(request.form.get('experience_years')),
             bio=request.form.get('bio'),
             status=request.form.get('status', 'Available'),
@@ -277,7 +279,10 @@ def ensure_worker_columns():
         columns = {column['name'] for column in inspector.get_columns('workers')}
         if 'location' not in columns:
             db.session.execute(text("ALTER TABLE workers ADD COLUMN location VARCHAR(120)"))
-            db.session.commit()
+        if 'hourly_rate' not in columns:
+            db.session.execute(text("ALTER TABLE workers ADD COLUMN hourly_rate REAL DEFAULT 0"))
+        db.session.execute(text("UPDATE workers SET hourly_rate = 0 WHERE hourly_rate IS NULL"))
+        db.session.commit()
 
 
 def init_db():

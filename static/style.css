@@ -12,8 +12,8 @@
   --teal-dark: #2f7fb5;
   --coral: #3ea6db;
   --coral-dark: #2a7ea8;
-  --sand: #f6fbff;
-  --card: #ffffff;
+  --sand: #e8eff5;
+  --card: #e8eff5;
   --steel: #5f7690;
   --rule: #dceef9;
   --good: #2f7d5c;
@@ -47,11 +47,18 @@ header.site-head {
   color: #fff;
   padding: 1.1rem 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  position: relative;
 }
 
-.brand { display: flex; align-items: center; gap: 0.7rem; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  justify-content: center;
+  text-align: center;
+}
 
 .brand-mark {
   width: 38px; height: 38px;
@@ -82,12 +89,19 @@ header.site-head {
   margin-top: 0.1rem;
 }
 
+nav.site-nav {
+  position: absolute;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
 nav.site-nav a {
   color: #d7dbe0;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
-  margin-left: 1.6rem;
   padding-bottom: 0.2rem;
   border-bottom: 2px solid transparent;
   transition: color .2s, border-color .2s;
