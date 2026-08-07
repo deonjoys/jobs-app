@@ -9,24 +9,19 @@
 <body>
 
 <header class="site-head">
+  <div class="header-spacer"></div>
+  <a href="/" class="brand-link" aria-label="Go to the homepage">
+    <span class="brand-mark">J</span>
+    <span class="brand-copy">
+      <strong>JobS</strong>
+      <small>Trusted pros</small>
+    </span>
+  </a>
   <div class="header-actions">
-    <a href="/" class="brand-link" aria-label="Go to the homepage">
-      <span class="brand-mark">J</span>
-      <span class="brand-copy">
-        <strong>JobS</strong>
-        <small>Trusted pros</small>
-      </span>
-    </a>
-    <a href="#search-panel" class="icon-link" aria-label="Jump to search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="6"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-    </a>
+    {% if is_admin %}
+    <a href="/admin" class="portal-pill">Admin Portal</a>
+    {% endif %}
   </div>
-  {% if is_admin %}
-  <a href="/admin" class="portal-pill">Admin Portal</a>
-  {% endif %}
 </header>
 
 <div class="wrap">
