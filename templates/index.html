@@ -84,10 +84,10 @@
         {% endif %}
 
         <div class="pro-actions">
-          <button class="btn-info" type="button">Info</button>
+          <button class="btn-info" type="button" onclick="toggleWorkerInfo(this)">Info</button>
           <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}')">Book</button>
         </div>
-        <div class="worker-info-panel">
+        <div class="worker-info-panel" hidden>
           <div class="worker-info-row">
             <span class="worker-info-label">Name</span>
             <span>{{ worker.name }}</span>
@@ -153,6 +153,13 @@
 </div>
 
 <script>
+function toggleWorkerInfo(button) {
+  const panel = button.closest('.pro-actions').nextElementSibling;
+  if (panel && panel.classList.contains('worker-info-panel')) {
+    panel.hidden = !panel.hidden;
+  }
+}
+
 function openBookingModal(id, name, trade) {
   document.getElementById('modalWorkerId').value = id;
   document.getElementById('modalTitle').innerText = 'Book ' + name + ' — ' + trade;
