@@ -411,13 +411,10 @@ header.site-head {
   margin-bottom: 1rem;
 }
 
-.profile-stats {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.profile-stats div {
+.profile-contact {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.2rem;
   background: #f6fbff;
   border: 1px solid var(--rule);
   border-radius: 12px;
@@ -425,13 +422,13 @@ header.site-head {
   min-width: 140px;
 }
 
-.profile-stats strong {
+.profile-contact strong {
   display: block;
   font-size: 1rem;
   color: var(--ink);
 }
 
-.profile-stats span {
+.profile-contact span {
   font-size: 0.8rem;
   color: var(--steel);
 }

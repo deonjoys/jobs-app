@@ -16,9 +16,6 @@
         <small>Trusted pros</small>
       </span>
     </a>
-    <div class="header-actions">
-      <a href="/" class="portal-pill">Back home</a>
-    </div>
   </header>
 
   <div class="wrap profile-page">
@@ -34,21 +31,15 @@
         <span class="trade-badge">{{ worker.trade }}</span>
         <h2>{{ worker.name }}</h2>
         <p class="profile-meta">{{ worker.location or 'Location not provided' }}</p>
-        <div class="profile-stats">
-          <div>
-            <strong>{{ worker.experience_years }}</strong>
-            <span>Years of experience</span>
-          </div>
-          <div>
-            <strong>{{ worker.phone }}</strong>
-            <span>Phone</span>
-          </div>
+        <div class="profile-contact">
+          <strong>{{ worker.phone }}</strong>
+          <span>Phone</span>
         </div>
       </div>
     </div>
 
     <div class="profile-section">
-      <h3>About</h3>
+      <h3>Bio</h3>
       <p>{{ worker.bio or 'No bio provided yet.' }}</p>
     </div>
 
