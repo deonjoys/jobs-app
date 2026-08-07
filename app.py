@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from werkzeug.utils import secure_filename
@@ -39,6 +39,18 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB uploads
 TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
 
 db = SQLAlchemy(app)
+
+
+@app.context_processor
+def inject_user_context():
+    return {'is_admin': session.get('is_admin', False)}
+
+
+@app.before_request
+def protect_admin_routes():
+    if request.path.startswith('/admin') and request.path not in ['/admin/login', '/admin/logout'] and not session.get('is_admin'):
+        flash('Please sign in to access the admin portal.', 'error')
+        return redirect(url_for('admin_login'))
 
 
 # ---------- Models ----------
@@ -159,6 +171,26 @@ def create_booking():
 
 
 # ---------- Admin routes ----------
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        expected_password = os.getenv('ADMIN_PASSWORD', 'admin123')
+        if password == expected_password:
+            session['is_admin'] = True
+            flash('Welcome back, admin.', 'success')
+            return redirect(url_for('client_home'))
+        flash('Invalid admin password.', 'error')
+    return render_template('admin/login.html')
+
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('is_admin', None)
+    flash('You have been signed out.', 'success')
+    return redirect(url_for('client_home'))
+
+
 @app.route('/admin')
 def admin_dashboard():
     workers = Worker.query.order_by(Worker.id.desc()).all()
