@@ -297,6 +297,47 @@ header.site-head {
 }
 .btn-book:hover { background: var(--coral-dark); }
 
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contact-card-body {
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f8fbfe;
+  border: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contact-name {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.contact-trade {
+  color: var(--teal-dark);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.contact-phone {
+  color: var(--steel);
+  font-weight: 600;
+}
+
+.call-link {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 0.3rem;
+}
+
 .btn-view {
   background: transparent; color: var(--ink); border: 1.5px solid var(--rule);
   padding: 0.5rem 0.8rem; border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer;
