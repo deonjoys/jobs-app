@@ -170,6 +170,12 @@ def create_booking():
     return redirect(url_for('client_home'))
 
 
+@app.route('/worker/<int:worker_id>')
+def worker_profile(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    return render_template('worker_profile.html', worker=worker)
+
+
 # ---------- Admin routes ----------
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():

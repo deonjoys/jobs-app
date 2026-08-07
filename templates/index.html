@@ -87,29 +87,8 @@
         {% endif %}
 
         <div class="pro-actions">
-          <button class="btn-info" type="button" onclick="toggleWorkerInfo(this)">Info</button>
+          <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">Info</a>
           <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}', '{{ worker.phone|e }}')">Contact</button>
-        </div>
-        <div class="worker-info-panel" hidden>
-          <div class="worker-info-row">
-            <span class="worker-info-label">Name</span>
-            <span>{{ worker.name }}</span>
-          </div>
-          <div class="worker-info-row">
-            <span class="worker-info-label">Experience</span>
-            <span>{{ worker.experience_years }} years</span>
-          </div>
-          <div class="worker-info-row">
-            <span class="worker-info-label">Location</span>
-            <span>{{ worker.location or 'Not provided' }}</span>
-          </div>
-          {% if worker.portfolio_images %}
-          <div class="mini-portfolio">
-            {% for img in worker.portfolio_images[:4] %}
-              <img src="{{ img.url }}" alt="Portfolio photo">
-            {% endfor %}
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>

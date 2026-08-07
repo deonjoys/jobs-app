@@ -370,6 +370,98 @@ header.site-head {
   width: 100%; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule);
 }
 
+.profile-page {
+  padding: 2rem 0 3rem;
+}
+
+.profile-hero {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--rule);
+  border-radius: 22px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(18, 50, 74, 0.08);
+}
+
+.profile-photo-wrap {
+  width: 100%;
+  min-height: 280px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #eef6fb;
+}
+
+.profile-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-details h2 {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.8rem;
+  margin: 0.4rem 0 0.3rem;
+}
+
+.profile-meta {
+  color: var(--steel);
+  margin-bottom: 1rem;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.profile-stats div {
+  background: #f6fbff;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  min-width: 140px;
+}
+
+.profile-stats strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.profile-stats span {
+  font-size: 0.8rem;
+  color: var(--steel);
+}
+
+.profile-section {
+  margin-top: 1.4rem;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  padding: 1.3rem 1.4rem;
+}
+
+.profile-section h3 {
+  font-family: 'Sora', sans-serif;
+  margin-bottom: 0.6rem;
+}
+
+.profile-section p {
+  color: var(--steel);
+  line-height: 1.7;
+}
+
+.profile-gallery a {
+  display: block;
+}
+
+.profile-empty {
+  font-style: italic;
+}
+
 /* ---------- Forms ---------- */
 .field { margin-bottom: 1rem; }
 .field label {
@@ -494,5 +586,7 @@ footer.site-foot { text-align: center; padding: 2rem 0 3rem; color: var(--steel)
   .header-spacer, .header-actions { justify-self: center; }
   .hero h2 { font-size: 1.7rem; }
   .control-bar { padding: 1rem; }
+  .profile-hero { grid-template-columns: 1fr; }
+  .profile-photo-wrap { min-height: 220px; }
   .admin-topbar { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
 }

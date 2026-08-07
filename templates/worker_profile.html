@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ worker.name }} | JobS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-head">
+    <div class="header-spacer"></div>
+    <a href="/" class="brand-link" aria-label="Go to the homepage">
+      <span class="brand-mark">J</span>
+      <span class="brand-copy">
+        <strong>JobS</strong>
+        <small>Trusted pros</small>
+      </span>
+    </a>
+    <div class="header-actions">
+      <a href="/" class="portal-pill">Back home</a>
+    </div>
+  </header>
+
+  <div class="wrap profile-page">
+    <div class="profile-hero">
+      <div class="profile-photo-wrap">
+        {% if worker.photo_url %}
+          <img src="{{ worker.photo_url }}" alt="{{ worker.name }}">
+        {% else %}
+          <div class="pro-avatar-fallback">{{ worker.initials }}</div>
+        {% endif %}
+      </div>
+      <div class="profile-details">
+        <span class="trade-badge">{{ worker.trade }}</span>
+        <h2>{{ worker.name }}</h2>
+        <p class="profile-meta">{{ worker.location or 'Location not provided' }}</p>
+        <div class="profile-stats">
+          <div>
+            <strong>{{ worker.experience_years }}</strong>
+            <span>Years of experience</span>
+          </div>
+          <div>
+            <strong>{{ worker.phone }}</strong>
+            <span>Phone</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h3>About</h3>
+      <p>{{ worker.bio or 'No bio provided yet.' }}</p>
+    </div>
+
+    <div class="profile-section">
+      <h3>Portfolio</h3>
+      {% if worker.portfolio_images %}
+        <div class="portfolio-gallery profile-gallery">
+          {% for img in worker.portfolio_images %}
+            <a href="{{ img.url }}" target="_blank" rel="noopener noreferrer">
+              <img src="{{ img.url }}" alt="{{ img.caption or 'Portfolio photo' }}">
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="profile-empty">No portfolio photos have been added yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
