@@ -1,6 +1,5 @@
 import os
 import uuid
-import json
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -65,7 +64,6 @@ class Worker(db.Model):
     hourly_rate = db.Column(db.Float, nullable=True, default=0)
     experience_years = db.Column(db.Integer, nullable=False)
     bio = db.Column(db.Text, nullable=True)
-    availability = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default='Available')
     photo_filename = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -84,13 +82,6 @@ class Worker(db.Model):
     def initials(self):
         parts = self.name.split()
         return ''.join(p[0] for p in parts[:2]).upper()
-
-    @property
-    def availability_list(self):
-        try:
-            return json.loads(self.availability) if self.availability else []
-        except Exception:
-            return []
 
 
 class PortfolioImage(db.Model):
@@ -226,7 +217,6 @@ def add_worker():
             hourly_rate=0,
             experience_years=int(request.form.get('experience_years')),
             bio=request.form.get('bio'),
-            availability=json.dumps(request.form.getlist('availability')),
             status=request.form.get('status', 'Available'),
             photo_filename=photo_filename,
         )
@@ -242,7 +232,7 @@ def add_worker():
         flash(f"{worker.name} was added to the roster.", "success")
         return redirect(url_for('admin_dashboard'))
 
-    return render_template('admin/worker_form.html', worker=None, trades=TRADES, selected_availability=[])
+    return render_template('admin/worker_form.html', worker=None, trades=TRADES)
 
 
 @app.route('/admin/workers/<int:worker_id>/edit', methods=['GET', 'POST'])
@@ -256,7 +246,6 @@ def edit_worker(worker_id):
         worker.location = request.form.get('location')
         worker.experience_years = int(request.form.get('experience_years'))
         worker.bio = request.form.get('bio')
-        worker.availability = json.dumps(request.form.getlist('availability'))
         worker.status = request.form.get('status', 'Available')
 
         new_photo = save_upload(request.files.get('photo'), WORKER_PHOTO_DIR)
@@ -273,11 +262,7 @@ def edit_worker(worker_id):
         flash(f"{worker.name}'s profile was updated.", "success")
         return redirect(url_for('admin_dashboard'))
 
-    try:
-        selected_availability = json.loads(worker.availability) if worker.availability else []
-    except Exception:
-        selected_availability = []
-    return render_template('admin/worker_form.html', worker=worker, trades=TRADES, selected_availability=selected_availability)
+    return render_template('admin/worker_form.html', worker=worker, trades=TRADES)
 
 
 @app.route('/admin/workers/<int:worker_id>/delete', methods=['POST'])
@@ -335,8 +320,6 @@ def ensure_worker_columns():
         if 'hourly_rate' not in columns:
             db.session.execute(text("ALTER TABLE workers ADD COLUMN hourly_rate REAL DEFAULT 0"))
         db.session.execute(text("UPDATE workers SET hourly_rate = 0 WHERE hourly_rate IS NULL"))
-        if 'availability' not in columns:
-            db.session.execute(text("ALTER TABLE workers ADD COLUMN availability TEXT"))
         db.session.commit()
 
 
