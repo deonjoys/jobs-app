@@ -45,6 +45,14 @@
     <div class="profile-section">
       <h3>Bio</h3>
       <p>{{ worker.bio or 'No bio provided yet.' }}</p>
+      {% if worker.availability_list %}
+        <h4>Available for</h4>
+        <ul class="availability-list">
+          {% for a in worker.availability_list %}
+            <li>{{ a }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     </div>
 
     <div class="profile-section">

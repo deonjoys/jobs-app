@@ -76,6 +76,16 @@
       </div>
 
       <div class="field">
+        <label>Available for</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="availability" value="Small jobs" {% if 'Small jobs' in selected_availability %}checked{% endif %}> Small jobs</label>
+          <label><input type="checkbox" name="availability" value="Big contracts" {% if 'Big contracts' in selected_availability %}checked{% endif %}> Big contracts</label>
+          <label><input type="checkbox" name="availability" value="Unfinished contract" {% if 'Unfinished contract' in selected_availability %}checked{% endif %}> Unfinished contract</label>
+        </div>
+        <small>These items will be shown on the worker's public profile under the bio.</small>
+      </div>
+
+      <div class="field">
         <label>Profile picture</label>
         {% if worker and worker.photo_url %}
           <div style="margin-bottom:0.6rem;"><img src="{{ worker.photo_url }}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:1px solid var(--rule);"></div>
