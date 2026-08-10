@@ -56,8 +56,6 @@
           <td>
             {% if worker.photo_url %}
               <img src="{{ worker.photo_url }}" class="row-photo" alt="{{ worker.name }}">
-            {% else %}
-              <span class="row-avatar-fallback">{{ worker.initials }}</span>
             {% endif %}
           </td>
           <td>{{ worker.name }}</td>
