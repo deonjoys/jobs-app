@@ -7,16 +7,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
 :root {
-  --ink: #12324a;
+  --ink: #0564ad;
   --teal: #74c9f3;
   --teal-dark: #2f7fb5;
   --coral: #3ea6db;
   --coral-dark: #2a7ea8;
-  --sand: #e8eff5;
-  --card: #e8eff5;
-  --steel: #5f7690;
+  --sand: #fafafa;
+  --card: #fafafa;
+  --steel: #58799f;
   --rule: #dceef9;
-  --good: #2f7d5c;
+  --good: #448369;
   --danger: #c45858;
 }
 
