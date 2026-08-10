@@ -35,6 +35,17 @@
         <span class="trade-badge">{{ worker.trade }}</span>
         <h2>{{ worker.name }}</h2>
         <p class="profile-meta">{{ worker.location or 'Location not provided' }}</p>
+        <p class="profile-bio">{{ worker.bio or 'No bio provided yet.' }}</p>
+        {% if worker.availability_list %}
+          <div class="availability-block">
+            <strong>Available for</strong>
+            <ul class="availability-list">
+              {% for a in worker.availability_list %}
+                <li>{{ a }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
         <div class="profile-contact">
           <strong>{{ worker.phone }}</strong>
           <span>Phone</span>
@@ -42,10 +53,6 @@
       </div>
     </div>
 
-    <div class="profile-section">
-      <h3>Bio</h3>
-      <p>{{ worker.bio or 'No bio provided yet.' }}</p>
-    </div>
 
     <div class="profile-section">
       <h3>Portfolio</h3>

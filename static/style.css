@@ -271,6 +271,16 @@ header.site-head {
   font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
   padding: 0.3rem 0.6rem; border-radius: 4px; margin-bottom: 0.6rem;
 }
+ 
+.pro-availability {
+  color: var(--steel);
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.availability-block { margin-top: 0.6rem; }
+.availability-list { margin: 0.35rem 0 0 1rem; color: var(--steel); }
+.availability-list li { line-height: 1.45; }
 .trade-badge svg { width: 13px; height: 13px; }
 
 .pro-card h3 { font-family: 'Sora', sans-serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; }

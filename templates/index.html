@@ -71,6 +71,9 @@
       <div class="pro-body">
         <span class="trade-badge">{{ worker.trade }}</span>
         <h3>{{ worker.name }}</h3>
+        {% if worker.availability_list %}
+        <p class="pro-availability">Available for: {{ worker.availability_list|join(', ') }}</p>
+        {% endif %}
 
         {% if worker.portfolio_images %}
         <div class="portfolio-strip">
