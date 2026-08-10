@@ -573,7 +573,20 @@ table.ledger tbody tr:hover { background: #faf8f3; }
 
 .thumb-manager { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 1rem; }
 .thumb-item { position: relative; width: 90px; height: 90px; }
-.thumb-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule); }
+.thumb-item img,
+.thumb-video {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--rule);
+}
+.thumb-video { background: #000; }
+.video-thumb {
+  width: 44px; height: 44px; border-radius: 6px; background: #0d3b5f;
+  color: #fff; font-size: 0.72rem; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; border: 1px solid var(--rule);
+}
+.portfolio-video {
+  width: 100%; height: 250px; border-radius: 14px; border: 1px solid var(--rule);
+  object-fit: cover; background: #000;
+}
 .thumb-remove {
   position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%;
   background: var(--danger); color: #fff; border: 2px solid #fff; cursor: pointer;

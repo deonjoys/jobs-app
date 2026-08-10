@@ -62,13 +62,20 @@
       {% if worker.portfolio_images %}
         <div class="portfolio-gallery profile-gallery">
           {% for img in worker.portfolio_images %}
-            <a href="{{ img.url }}" target="_blank" rel="noopener noreferrer">
-              <img src="{{ img.url }}" alt="{{ img.caption or 'Portfolio photo' }}">
-            </a>
+            {% if img.file_type == 'video' %}
+              <video controls class="portfolio-video">
+                <source src="{{ img.url }}" type="video/{{ img.filename.rsplit('.', 1)[1].lower() }}">
+                Your browser does not support the video tag.
+              </video>
+            {% else %}
+              <a href="{{ img.url }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ img.url }}" alt="{{ img.caption or 'Portfolio photo' }}">
+              </a>
+            {% endif %}
           {% endfor %}
         </div>
       {% else %}
-        <p class="profile-empty">No portfolio photos have been added yet.</p>
+        <p class="profile-empty">No portfolio items have been added yet.</p>
       {% endif %}
     </div>
   </div>

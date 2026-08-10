@@ -96,12 +96,16 @@
 
       {% if worker and worker.portfolio_images %}
       <div class="field">
-        <label>Current portfolio photos</label>
+        <label>Current portfolio items</label>
         <div class="thumb-manager">
           {% for img in worker.portfolio_images %}
           <div class="thumb-item">
-            <img src="{{ img.url }}" alt="Portfolio photo">
-            <form action="{{ url_for('delete_portfolio_image', image_id=img.id) }}" method="POST" onsubmit="return confirm('Remove this portfolio photo?');" style="display:inline;">
+            {% if img.file_type == 'video' %}
+            <video controls src="{{ img.url }}" class="thumb-video"></video>
+            {% else %}
+            <img src="{{ img.url }}" alt="Portfolio item">
+            {% endif %}
+            <form action="{{ url_for('delete_portfolio_image', image_id=img.id) }}" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">
               <button type="submit" class="thumb-remove" title="Remove">×</button>
             </form>
           </div>
@@ -111,9 +115,9 @@
       {% endif %}
 
       <div class="field">
-        <label>{{ 'Add more portfolio photos' if worker else 'Portfolio photos' }}</label>
-        <input type="file" name="portfolio_images" accept="image/*" multiple>
-        <small>Select multiple photos of past work — clients see these before booking.</small>
+        <label>{{ 'Add more portfolio media' if worker else 'Portfolio media' }}</label>
+        <input type="file" name="portfolio_images" accept="image/*,video/*" multiple>
+        <small>Select multiple images or short videos of past work — clients see these before booking.</small>
       </div>
 
       <div class="btn-row">

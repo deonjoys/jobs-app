@@ -34,7 +34,8 @@ PORTFOLIO_DIR = os.path.join(UPLOAD_ROOT, 'portfolio')
 os.makedirs(WORKER_PHOTO_DIR, exist_ok=True)
 os.makedirs(PORTFOLIO_DIR, exist_ok=True)
 
-ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'}
+VIDEO_EXT = {'mp4', 'webm', 'mov'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB uploads
 
 TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
@@ -103,6 +104,11 @@ class PortfolioImage(db.Model):
     @property
     def url(self):
         return url_for('static', filename=f'uploads/portfolio/{self.filename}')
+
+    @property
+    def file_type(self):
+        ext = self.filename.rsplit('.', 1)[1].lower() if '.' in self.filename else ''
+        return 'video' if ext in VIDEO_EXT else 'image'
 
 
 class Booking(db.Model):
@@ -320,7 +326,7 @@ def worker_portfolio_json(worker_id):
     return jsonify({
         'name': worker.name,
         'trade': worker.trade,
-        'images': [{'url': img.url, 'caption': img.caption} for img in worker.portfolio_images],
+        'images': [{'url': img.url, 'caption': img.caption, 'type': img.file_type} for img in worker.portfolio_images],
     })
 
 

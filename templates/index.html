@@ -78,7 +78,11 @@
         {% if worker.portfolio_images %}
         <div class="portfolio-strip">
           {% for img in worker.portfolio_images[:3] %}
-            <img src="{{ img.url }}" alt="Portfolio">
+            {% if img.file_type == 'video' %}
+              <div class="video-thumb">Video</div>
+            {% else %}
+              <img src="{{ img.url }}" alt="Portfolio">
+            {% endif %}
           {% endfor %}
           {% if worker.portfolio_images|length > 3 %}
             <div class="more">+{{ worker.portfolio_images|length - 3 }}</div>

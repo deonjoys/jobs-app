@@ -65,7 +65,7 @@
           <td>{{ worker.phone }}</td>
           <td>{{ worker.experience_years }} yrs</td>
           <td><span class="pill {{ 'available' if worker.status == 'Available' else 'booked' }}">{{ worker.status }}</span></td>
-          <td>{{ worker.portfolio_images|length }} photo{{ 's' if worker.portfolio_images|length != 1 else '' }}</td>
+          <td>{{ worker.portfolio_images|length }} item{{ 's' if worker.portfolio_images|length != 1 else '' }}</td>
           <td>
             <div class="row-actions">
               <a class="icon-btn" href="{{ url_for('edit_worker', worker_id=worker.id) }}" title="Edit">
