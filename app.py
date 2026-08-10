@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "jobs_secret_key")
@@ -111,6 +112,17 @@ class PortfolioImage(db.Model):
         return 'video' if ext in VIDEO_EXT else 'image'
 
 
+class AdminConfig(db.Model):
+    __tablename__ = 'admin_config'
+    id = db.Column(db.Integer, primary_key=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+
+    @property
+    def file_type(self):
+        ext = self.filename.rsplit('.', 1)[1].lower() if '.' in self.filename else ''
+        return 'video' if ext in VIDEO_EXT else 'image'
+
+
 class Booking(db.Model):
     __tablename__ = 'bookings'
     id = db.Column(db.Integer, primary_key=True)
@@ -192,17 +204,48 @@ def worker_profile(worker_id):
 
 
 # ---------- Admin routes ----------
+def get_admin_config():
+    config = AdminConfig.query.first()
+    if not config:
+        default_password = os.getenv('ADMIN_PASSWORD', 'admin123')
+        config = AdminConfig(password_hash=generate_password_hash(default_password))
+        db.session.add(config)
+        db.session.commit()
+    return config
+
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         password = request.form.get('password', '')
-        expected_password = os.getenv('ADMIN_PASSWORD', 'admin123')
-        if password == expected_password:
+        config = get_admin_config()
+        if check_password_hash(config.password_hash, password):
             session['is_admin'] = True
             flash('Welcome back, admin.', 'success')
-            return redirect(url_for('client_home'))
+            return redirect(url_for('admin_dashboard'))
         flash('Invalid admin password.', 'error')
     return render_template('admin/login.html')
+
+
+@app.route('/admin/change-password', methods=['GET', 'POST'])
+def change_password():
+    if request.method == 'POST':
+        current = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        config = get_admin_config()
+        if not check_password_hash(config.password_hash, current):
+            flash('Current password is incorrect.', 'error')
+        elif not new_password:
+            flash('Enter a new password.', 'error')
+        elif new_password != confirm_password:
+            flash('New passwords do not match.', 'error')
+        else:
+            config.password_hash = generate_password_hash(new_password)
+            db.session.commit()
+            flash('Admin password changed successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+    return render_template('admin/change_password.html')
 
 
 @app.route('/admin/logout')
@@ -350,6 +393,7 @@ def init_db():
     with app.app_context():
         db.create_all()
         ensure_worker_columns()
+        get_admin_config()
 
 
 init_db()

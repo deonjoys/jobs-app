@@ -42,7 +42,11 @@
 
   <div class="admin-topbar">
     <h2>Worker roster ({{ workers|length }})</h2>
-    <a href="{{ url_for('add_worker') }}" class="btn-solid" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">+ Add worker</a>
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+      <a href="{{ url_for('add_worker') }}" class="btn-solid" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">+ Add worker</a>
+      <a href="{{ url_for('change_password') }}" class="btn-ghost" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">Change password</a>
+      <a href="{{ url_for('admin_logout') }}" class="btn-ghost" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">Logout</a>
+    </div>
   </div>
 
   <div class="panel" style="margin-top:0;">
