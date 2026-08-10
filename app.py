@@ -353,6 +353,33 @@ def delete_portfolio_image(image_id):
     return redirect(url_for('edit_worker', worker_id=worker_id))
 
 
+@app.route('/admin/portfolio/<int:image_id>/edit', methods=['POST'])
+def edit_portfolio_image(image_id):
+    image = PortfolioImage.query.get_or_404(image_id)
+    worker_id = image.worker_id
+    caption = request.form.get('caption', '').strip()
+    image.caption = caption if caption else None
+    db.session.commit()
+    flash('Portfolio item updated.', 'success')
+    return redirect(url_for('edit_worker', worker_id=worker_id))
+
+
+@app.route('/admin/workers/<int:worker_id>/upload', methods=['POST'])
+def upload_portfolio_items(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    files = request.files.getlist('files')
+    created = []
+    for f in files:
+        fname = save_upload(f, PORTFOLIO_DIR)
+        if fname:
+            pi = PortfolioImage(worker_id=worker.id, filename=fname)
+            db.session.add(pi)
+            db.session.flush()
+            created.append({'id': pi.id, 'url': pi.url, 'type': pi.file_type, 'caption': pi.caption or ''})
+    db.session.commit()
+    return jsonify({'items': created})
+
+
 @app.route('/admin/booking/<int:booking_id>/confirm', methods=['POST'])
 def confirm_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
