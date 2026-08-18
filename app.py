@@ -342,6 +342,12 @@ def delete_worker(worker_id):
     return redirect(url_for('admin_dashboard'))
 
 
+@app.route('/admin/workers/<int:worker_id>/portfolio', methods=['GET'])
+def manage_portfolio(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    return render_template('admin/portfolio_manager.html', worker=worker)
+
+
 @app.route('/admin/portfolio/<int:image_id>/delete', methods=['POST'])
 def delete_portfolio_image(image_id):
     image = PortfolioImage.query.get_or_404(image_id)
@@ -349,6 +355,9 @@ def delete_portfolio_image(image_id):
     delete_file(PORTFOLIO_DIR, image.filename)
     db.session.delete(image)
     db.session.commit()
+    # Return JSON for AJAX requests, redirect for form submissions
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': True})
     flash("Portfolio photo removed.", "success")
     return redirect(url_for('edit_worker', worker_id=worker_id))
 
@@ -360,6 +369,9 @@ def edit_portfolio_image(image_id):
     caption = request.form.get('caption', '').strip()
     image.caption = caption if caption else None
     db.session.commit()
+    # Return JSON for AJAX requests, redirect for form submissions
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': True})
     flash('Portfolio item updated.', 'success')
     return redirect(url_for('edit_worker', worker_id=worker_id))
 

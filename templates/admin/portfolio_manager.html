@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ worker.name }} Portfolio | JobS Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .portfolio-manager-header {
+      background: linear-gradient(135deg, var(--ink) 0%, #1c3b53 100%);
+      color: #fff;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    .portfolio-manager-header .wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .portfolio-manager-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .portfolio-manager-header .worker-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: rgba(255,255,255,0.15);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+    }
+    .portfolio-manager-header .worker-badge img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .portfolio-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    .portfolio-uploads {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 2px dashed var(--rule);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .portfolio-uploads:hover,
+    .portfolio-uploads.dragover {
+      border-color: var(--coral);
+      background: rgba(62, 166, 219, 0.08);
+    }
+    
+    .portfolio-uploads input[type="file"] {
+      display: none;
+    }
+    
+    .upload-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--coral);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 28px;
+      margin-bottom: 1rem;
+    }
+    
+    .portfolio-uploads h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.3rem;
+      color: var(--ink);
+    }
+    
+    .portfolio-uploads p {
+      font-size: 0.9rem;
+      color: var(--steel);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    
+    .btn-upload {
+      background: var(--coral);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 0.95rem;
+    }
+    
+    .btn-upload:hover {
+      background: var(--coral-dark);
+    }
+    
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+    
+    .portfolio-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--card);
+      border: 1px solid var(--rule);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+    
+    .portfolio-item:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+    
+    .portfolio-item img,
+    .portfolio-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .portfolio-item-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .portfolio-item:hover .portfolio-item-overlay {
+      opacity: 1;
+    }
+    
+    .portfolio-item-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+    
+    .btn-edit {
+      background: var(--coral);
+      color: white;
+    }
+    
+    .btn-edit:hover {
+      background: var(--coral-dark);
+    }
+    
+    .btn-delete {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .btn-delete:hover {
+      background: #a84545;
+    }
+    
+    .video-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--coral);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    
+    .portfolio-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .portfolio-list-empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--steel);
+    }
+    
+    .edit-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .edit-modal.open {
+      display: flex;
+    }
+    
+    .edit-modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .edit-modal-header {
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 1rem;
+    }
+    
+    .edit-modal-header h3 {
+      font-size: 1.2rem;
+      color: var(--ink);
+    }
+    
+    .edit-modal-preview {
+      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 200px;
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .edit-modal-preview img,
+    .edit-modal-preview video {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .edit-form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .edit-form-group label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: var(--ink);
+      font-size: 0.9rem;
+    }
+    
+    .edit-form-group input {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    
+    .edit-form-group input:focus {
+      outline: none;
+      border-color: var(--coral);
+      box-shadow: 0 0 0 3px rgba(62, 166, 219, 0.1);
+    }
+    
+    .edit-modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--rule);
+      padding-top: 1.5rem;
+    }
+    
+    .btn-modal {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-save {
+      background: var(--coral);
+      color: white;
+    }
+    
+    .btn-save:hover {
+      background: var(--coral-dark);
+    }
+    
+    .btn-cancel {
+      background: var(--card);
+      color: var(--ink);
+      border: 1px solid var(--rule);
+    }
+    
+    .btn-cancel:hover {
+      background: var(--rule);
+    }
+    
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: var(--coral);
+      font-weight: 600;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+    
+    .back-link:hover {
+      gap: 0.6rem;
+    }
+    
+    .back-link::before {
+      content: "←";
+    }
+    
+    .stats {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 0;
+      font-size: 0.9rem;
+      color: var(--steel);
+    }
+    
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    
+    .stat-number {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 1.1rem;
+    }
+    
+    @media (max-width: 768px) {
+      .portfolio-section {
+        grid-template-columns: 1fr;
+      }
+      
+      .portfolio-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
+      
+      .portfolio-manager-header .wrap {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="brand">
+    <div class="brand-mark">J</div>
+    <div><h1>JobS Admin</h1><span class="sub">Roster &amp; bookings</span></div>
+  </div>
+  <nav class="site-nav">
+    <a href="/">Client Site</a>
+    <a href="/admin">Admin</a>
+  </nav>
+</header>
+
+<div class="portfolio-manager-header">
+  <div class="wrap">
+    <div>
+      <h2>Manage Portfolio</h2>
+      <p style="margin-top: 0.3rem; font-size: 0.9rem; opacity: 0.9;">Add and organize portfolio items</p>
+    </div>
+    <div class="worker-badge">
+      {% if worker.photo_url %}
+      <img src="{{ worker.photo_url }}" alt="{{ worker.name }}">
+      {% else %}
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--coral); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;">{{ worker.initials }}</div>
+      {% endif %}
+      <span>{{ worker.name }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" style="padding: 0 2rem 2rem;">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <a href="{{ url_for('edit_worker', worker_id=worker.id) }}" class="back-link">Edit worker details</a>
+
+  <div class="portfolio-section">
+    <!-- Upload Section -->
+    <div>
+      <h3 style="margin-bottom: 1rem; color: var(--ink);">Add New Items</h3>
+      <div class="portfolio-uploads" id="uploadZone">
+        <div class="upload-icon">🎬</div>
+        <h3>Add portfolio items</h3>
+        <p>
+          Drag and drop photos or videos here<br>
+          <strong>or click to browse</strong>
+        </p>
+        <button class="btn-upload" id="uploadBtn">Select files</button>
+        <input type="file" id="fileInput" multiple accept="image/*,video/*">
+        <p style="font-size: 0.8rem; margin-top: 1rem; opacity: 0.7;">
+          Supports JPG, PNG, GIF, WebP, MP4, WebM, MOV (max 16MB each)
+        </p>
+      </div>
+    </div>
+
+    <!-- Portfolio Grid -->
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="color: var(--ink);">Current Portfolio</h3>
+        <div class="stats">
+          <div class="stat">
+            <span>Items:</span>
+            <span class="stat-number" id="itemCount">{{ worker.portfolio_images|length }}</span>
+          </div>
+        </div>
+      </div>
+
+      {% if worker.portfolio_images %}
+      <div class="portfolio-grid" id="portfolioGrid">
+        {% for img in worker.portfolio_images %}
+        <div class="portfolio-item" data-id="{{ img.id }}" data-type="{{ img.file_type }}">
+          {% if img.file_type == 'video' %}
+            <video src="{{ img.url }}"></video>
+            <div class="video-badge">VIDEO</div>
+          {% else %}
+            <img src="{{ img.url }}" alt="Portfolio item">
+          {% endif %}
+          <div class="portfolio-item-overlay">
+            <div class="portfolio-item-actions">
+              <button class="btn-icon btn-edit" data-id="{{ img.id }}" data-caption="{{ img.caption or '' }}" title="Edit caption">✏️</button>
+              <button class="btn-icon btn-delete" data-id="{{ img.id }}" title="Delete">🗑️</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="portfolio-list-empty">
+        <p style="font-size: 3rem; margin-bottom: 0.5rem;">📂</p>
+        <p>No portfolio items yet. Start by uploading some photos or videos of your work!</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Edit Modal -->
+<div class="edit-modal" id="editModal">
+  <div class="edit-modal-content">
+    <div class="edit-modal-header">
+      <h3>Edit Caption</h3>
+    </div>
+    <div class="edit-modal-preview" id="editPreview"></div>
+    <form id="editForm">
+      <div class="edit-form-group">
+        <label for="captionInput">Caption (optional)</label>
+        <input type="text" id="captionInput" placeholder="Describe this work...">
+      </div>
+    </form>
+    <div class="edit-modal-actions">
+      <button class="btn-modal btn-cancel" id="cancelBtn">Cancel</button>
+      <button class="btn-modal btn-save" id="saveBtn">Save caption</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-foot">JobS Admin — internal use only.</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const uploadZone = document.getElementById('uploadZone');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileInput = document.getElementById('fileInput');
+  const portfolioGrid = document.getElementById('portfolioGrid');
+  const editModal = document.getElementById('editModal');
+  const editForm = document.getElementById('editForm');
+  const captionInput = document.getElementById('captionInput');
+  const saveBtn = document.getElementById('saveBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const itemCount = document.getElementById('itemCount');
+  
+  let editingId = null;
+
+  // File upload
+  uploadBtn.addEventListener('click', () => fileInput.click());
+  
+  fileInput.addEventListener('change', handleFileSelect);
+  
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+  
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+  
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    handleFileSelect();
+  });
+
+  function handleFileSelect() {
+    const files = Array.from(fileInput.files);
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading...';
+
+    fetch('{{ url_for("upload_portfolio_items", worker_id=worker.id) }}', {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.items) {
+        data.items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'portfolio-item';
+          div.dataset.id = item.id;
+          div.dataset.type = item.type;
+          
+          let content = '';
+          if (item.type === 'video') {
+            content += `<video src="${item.url}"></video>`;
+            content += '<div class="video-badge">VIDEO</div>';
+          } else {
+            content += `<img src="${item.url}" alt="Portfolio item">`;
+          }
+          
+          content += `
+            <div class="portfolio-item-overlay">
+              <div class="portfolio-item-actions">
+                <button class="btn-icon btn-edit" data-id="${item.id}" data-caption="${item.caption}" title="Edit caption">✏️</button>
+                <button class="btn-icon btn-delete" data-id="${item.id}" title="Delete">🗑️</button>
+              </div>
+            </div>
+          `;
+          
+          div.innerHTML = content;
+          
+          if (!portfolioGrid || portfolioGrid.querySelector('.portfolio-list-empty')) {
+            // Replace empty state
+            if (portfolioGrid) {
+              portfolioGrid.remove();
+            }
+            const newGrid = document.createElement('div');
+            newGrid.id = 'portfolioGrid';
+            newGrid.className = 'portfolio-grid';
+            document.querySelector('h3').parentElement.appendChild(newGrid);
+          }
+          
+          document.getElementById('portfolioGrid').appendChild(div);
+          attachItemListeners(div);
+        });
+        
+        const count = parseInt(itemCount.textContent) + data.items.length;
+        itemCount.textContent = count;
+      }
+      
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = 'Select files';
+      fileInput.value = '';
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Upload failed. Please try again.');
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = 'Select files';
+    });
+  }
+
+  function attachItemListeners(item) {
+    const editBtn = item.querySelector('.btn-edit');
+    const deleteBtn = item.querySelector('.btn-delete');
+    
+    editBtn.addEventListener('click', () => openEditModal(editBtn));
+    deleteBtn.addEventListener('click', () => deleteItem(deleteBtn));
+  }
+
+  function openEditModal(btn) {
+    editingId = btn.dataset.id;
+    const caption = btn.dataset.caption || '';
+    const item = document.querySelector(`[data-id="${editingId}"]`);
+    const preview = item.querySelector('img') || item.querySelector('video');
+    
+    document.getElementById('editPreview').innerHTML = preview.outerHTML;
+    captionInput.value = caption;
+    editModal.classList.add('open');
+    captionInput.focus();
+  }
+
+  saveBtn.addEventListener('click', () => {
+    const caption = captionInput.value.trim();
+    const formData = new FormData();
+    formData.append('caption', caption);
+
+    fetch(`/admin/portfolio/${editingId}/edit`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        editModal.classList.remove('open');
+        editingId = null;
+      }
+    })
+    .catch(err => console.error(err));
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    editModal.classList.remove('open');
+    editingId = null;
+  });
+
+  function deleteItem(btn) {
+    if (!confirm('Delete this portfolio item?')) return;
+    
+    const id = btn.dataset.id;
+    fetch(`/admin/portfolio/${id}/delete`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const item = document.querySelector(`[data-id="${id}"]`);
+        item.remove();
+        const count = Math.max(0, parseInt(itemCount.textContent) - 1);
+        itemCount.textContent = count;
+      }
+    })
+    .catch(err => console.error(err));
+  }
+
+  // Attach listeners to existing items
+  document.querySelectorAll('.portfolio-item').forEach(attachItemListeners);
+  
+  // Close modal on escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      editModal.classList.remove('open');
+      editingId = null;
+    }
+  });
+});
+</script>
+
+</body>
+</html>
