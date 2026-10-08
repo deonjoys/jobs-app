@@ -1,17 +1,28 @@
 import os
 import uuid
 import json
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, abort, render_template, request, redirect, url_for, flash, jsonify, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "jobs_secret_key")
+IS_VERCEL = os.getenv('VERCEL') == '1'
+SECRET_KEY = os.getenv('SECRET_KEY')
+if IS_VERCEL and not SECRET_KEY:
+    raise RuntimeError('Set SECRET_KEY in the Vercel project environment variables.')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+if IS_VERCEL and not ADMIN_PASSWORD:
+    raise RuntimeError('Set ADMIN_PASSWORD in the Vercel project environment variables.')
+app.secret_key = SECRET_KEY or 'jobs_secret_key'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_ROOT = os.path.join(BASE_DIR, 'static', 'uploads')
+UPLOAD_ROOT = (
+    os.path.join('/tmp', 'jobs-app-uploads')
+    if IS_VERCEL
+    else os.path.join(BASE_DIR, 'static', 'uploads')
+)
 
 DB_USER = os.getenv('DB_USER', 'postgres')
 DB_PASS = os.getenv('DB_PASS', 'postgres')
@@ -20,20 +31,42 @@ DB_PORT = os.getenv('DB_PORT', '5432')
 DB_NAME = os.getenv('DB_NAME', 'jobs_db')
 
 DEFAULT_DB_URI = os.getenv('DATABASE_URL') or os.getenv('DB_URL')
+if IS_VERCEL and not DEFAULT_DB_URI:
+    raise RuntimeError('Set DATABASE_URL to a hosted PostgreSQL connection string in Vercel.')
 if not DEFAULT_DB_URI:
     if any([os.getenv('DB_USER'), os.getenv('DB_PASS'), os.getenv('DB_HOST'), os.getenv('DB_PORT'), os.getenv('DB_NAME')]):
         DEFAULT_DB_URI = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     else:
         DEFAULT_DB_URI = f"sqlite:///{os.path.join(BASE_DIR, 'jobs.db')}"
+if DEFAULT_DB_URI.startswith('postgres://'):
+    DEFAULT_DB_URI = DEFAULT_DB_URI.replace('postgres://', 'postgresql://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DEFAULT_DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 if DEFAULT_DB_URI.startswith('sqlite'):
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'connect_args': {'check_same_thread': False}}
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'].update(
+        {'connect_args': {'check_same_thread': False}}
+    )
 WORKER_PHOTO_DIR = os.path.join(UPLOAD_ROOT, 'workers')
 PORTFOLIO_DIR = os.path.join(UPLOAD_ROOT, 'portfolio')
 os.makedirs(WORKER_PHOTO_DIR, exist_ok=True)
 os.makedirs(PORTFOLIO_DIR, exist_ok=True)
+
+
+def uploaded_file_url(folder, filename):
+    if IS_VERCEL:
+        return url_for('uploaded_file', folder=folder, filename=filename)
+    return url_for('static', filename=f'uploads/{folder}/{filename}')
+
+
+@app.route('/uploads/<folder>/<filename>')
+def uploaded_file(folder, filename):
+    directories = {'workers': WORKER_PHOTO_DIR, 'portfolio': PORTFOLIO_DIR}
+    if folder not in directories:
+        abort(404)
+    return send_from_directory(directories[folder], filename)
+
 
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'}
 VIDEO_EXT = {'mp4', 'webm', 'mov'}
@@ -79,7 +112,7 @@ class Worker(db.Model):
     @property
     def photo_url(self):
         if self.photo_filename:
-            return url_for('static', filename=f'uploads/workers/{self.photo_filename}')
+            return uploaded_file_url('workers', self.photo_filename)
         return None
 
     @property
@@ -104,7 +137,7 @@ class PortfolioImage(db.Model):
 
     @property
     def url(self):
-        return url_for('static', filename=f'uploads/portfolio/{self.filename}')
+        return uploaded_file_url('portfolio', self.filename)
 
     @property
     def file_type(self):
@@ -207,7 +240,7 @@ def worker_profile(worker_id):
 def get_admin_config():
     config = AdminConfig.query.first()
     if not config:
-        default_password = os.getenv('ADMIN_PASSWORD', 'admin123')
+        default_password = ADMIN_PASSWORD or 'admin123'
         config = AdminConfig(password_hash=generate_password_hash(default_password))
         db.session.add(config)
         db.session.commit()
@@ -342,12 +375,6 @@ def delete_worker(worker_id):
     return redirect(url_for('admin_dashboard'))
 
 
-@app.route('/admin/workers/<int:worker_id>/portfolio', methods=['GET'])
-def manage_portfolio(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
-    return render_template('admin/portfolio_manager.html', worker=worker)
-
-
 @app.route('/admin/portfolio/<int:image_id>/delete', methods=['POST'])
 def delete_portfolio_image(image_id):
     image = PortfolioImage.query.get_or_404(image_id)
@@ -355,9 +382,6 @@ def delete_portfolio_image(image_id):
     delete_file(PORTFOLIO_DIR, image.filename)
     db.session.delete(image)
     db.session.commit()
-    # Return JSON for AJAX requests, redirect for form submissions
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'success': True})
     flash("Portfolio photo removed.", "success")
     return redirect(url_for('edit_worker', worker_id=worker_id))
 
@@ -369,9 +393,6 @@ def edit_portfolio_image(image_id):
     caption = request.form.get('caption', '').strip()
     image.caption = caption if caption else None
     db.session.commit()
-    # Return JSON for AJAX requests, redirect for form submissions
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'success': True})
     flash('Portfolio item updated.', 'success')
     return redirect(url_for('edit_worker', worker_id=worker_id))
 

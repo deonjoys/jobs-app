@@ -76,7 +76,11 @@
         {% endif %}
 
         {% if worker.portfolio_images %}
-        <div class="portfolio-strip">
+        <div class="portfolio-strip portfolio-trigger"
+             onclick="openPortfolio('{{ worker.id }}', '{{ worker.name|e }}')"
+             tabindex="0"
+             role="button"
+             aria-label="Open {{ worker.name }} portfolio">
           {% for img in worker.portfolio_images[:3] %}
             {% if img.file_type == 'video' %}
               <div class="video-thumb">Video</div>
@@ -167,7 +171,24 @@ function openPortfolio(workerId, name) {
         gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">No portfolio photos yet.</p>';
         return;
       }
-      gallery.innerHTML = data.images.map(img => `<img src="${img.url}" alt="${img.caption || 'Portfolio photo'}">`).join('');
+      gallery.innerHTML = data.images.map(img => {
+        if (img.type === 'video') {
+          return `
+            <div class="portfolio-media-card">
+              <video controls playsinline preload="metadata">
+                <source src="${img.url}">
+              </video>
+              ${img.caption ? `<p class="portfolio-caption">${img.caption}</p>` : ''}
+            </div>
+          `;
+        }
+        return `
+          <div class="portfolio-media-card">
+            <img src="${img.url}" alt="${img.caption || 'Portfolio photo'}">
+            ${img.caption ? `<p class="portfolio-caption">${img.caption}</p>` : ''}
+          </div>
+        `;
+      }).join('');
     });
 }
 function closePortfolio() { document.getElementById('portfolioModal').style.display = 'none'; }

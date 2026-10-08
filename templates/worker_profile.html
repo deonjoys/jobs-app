@@ -14,7 +14,7 @@
       </svg>
     </a>
     <a href="/" class="brand-link" aria-label="Go to the homepage">
-      <span class="brand-mark">J</span>
+      <span class="brand-mark">JS</span>
       <span class="brand-copy">
         <strong>JobS</strong>
         <small>Trusted pros</small>
@@ -61,17 +61,26 @@
       <h3>Portfolio</h3>
       {% if worker.portfolio_images %}
         <div class="portfolio-gallery profile-gallery">
-          {% for img in worker.portfolio_images %}
-            {% if img.file_type == 'video' %}
-              <video controls class="portfolio-video">
-                <source src="{{ img.url }}" type="video/{{ img.filename.rsplit('.', 1)[1].lower() }}">
-                Your browser does not support the video tag.
-              </video>
-            {% else %}
-              <a href="{{ img.url }}" target="_blank" rel="noopener noreferrer">
-                <img src="{{ img.url }}" alt="{{ img.caption or 'Portfolio photo' }}">
-              </a>
-            {% endif %}
+          {% for item in worker.portfolio_images %}
+            <button
+              type="button"
+              class="portfolio-item media-button"
+              data-media-url="{{ item.url }}"
+              data-media-type="{{ item.file_type }}"
+              data-caption="{{ item.caption or 'Portfolio item' }}"
+              aria-label="Open {{ item.file_type }} for {{ worker.name }}"
+            >
+              {% if item.file_type == 'video' %}
+                <video controls preload="metadata" class="portfolio-video">
+                  <source src="{{ item.url }}" type="video/{{ item.filename.rsplit('.', 1)[1].lower() }}">
+                  Your browser does not support the video tag.
+                </video>
+                <span class="media-badge">Video</span>
+              {% else %}
+                <img src="{{ item.url }}" alt="{{ item.caption or 'Portfolio photo' }}">
+                <span class="media-badge media-badge-image">Open media</span>
+              {% endif %}
+            </button>
           {% endfor %}
         </div>
       {% else %}
@@ -79,5 +88,65 @@
       {% endif %}
     </div>
   </div>
+
+  <div id="portfolioLightbox" class="portfolio-lightbox" hidden>
+    <div class="portfolio-lightbox-dialog">
+      <button type="button" class="portfolio-lightbox-close" aria-label="Close media viewer">×</button>
+      <div id="portfolioLightboxContent"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const lightbox = document.getElementById('portfolioLightbox');
+      const content = document.getElementById('portfolioLightboxContent');
+      const closeButton = document.querySelector('.portfolio-lightbox-close');
+
+      function closeLightbox() {
+        lightbox.hidden = true;
+        content.innerHTML = '';
+      }
+
+      document.querySelectorAll('.media-button').forEach((button) => {
+        button.addEventListener('click', function () {
+          const url = button.dataset.mediaUrl;
+          const type = button.dataset.mediaType;
+          const caption = button.dataset.caption || 'Portfolio item';
+
+          if (type === 'video') {
+            content.innerHTML = `
+              <div class="portfolio-lightbox-media-wrap">
+                <video controls playsinline autoplay class="portfolio-lightbox-media">
+                  <source src="${url}">
+                </video>
+              </div>
+              <p class="portfolio-lightbox-caption">${caption}</p>
+            `;
+          } else {
+            content.innerHTML = `
+              <div class="portfolio-lightbox-media-wrap">
+                <img src="${url}" alt="${caption}" class="portfolio-lightbox-media">
+              </div>
+              <p class="portfolio-lightbox-caption">${caption}</p>
+            `;
+          }
+
+          lightbox.hidden = false;
+        });
+      });
+
+      closeButton.addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', function (event) {
+        if (event.target === lightbox) {
+          closeLightbox();
+        }
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !lightbox.hidden) {
+          closeLightbox();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
