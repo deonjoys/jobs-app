@@ -39,7 +39,9 @@ if not DEFAULT_DB_URI:
     else:
         DEFAULT_DB_URI = f"sqlite:///{os.path.join(BASE_DIR, 'jobs.db')}"
 if DEFAULT_DB_URI.startswith('postgres://'):
-    DEFAULT_DB_URI = DEFAULT_DB_URI.replace('postgres://', 'postgresql://', 1)
+    DEFAULT_DB_URI = DEFAULT_DB_URI.replace('postgres://', 'postgresql+psycopg://', 1)
+elif DEFAULT_DB_URI.startswith('postgresql://'):
+    DEFAULT_DB_URI = DEFAULT_DB_URI.replace('postgresql://', 'postgresql+psycopg://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DEFAULT_DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

@@ -57,10 +57,11 @@ def test_worker_profile_page_has_portfolio_lightbox_support():
             )
             db.session.add(worker)
             db.session.flush()
-            db.session.add(PortfolioImage(worker_id=worker.id, filename='sample.jpg', caption='Kitchen install'))
+            worker_id = worker.id
+            db.session.add(PortfolioImage(worker_id=worker_id, filename='sample.jpg', caption='Kitchen install'))
             db.session.commit()
 
-        response = client.get(f'/worker/{worker.id}')
+        response = client.get(f'/worker/{worker_id}')
         assert response.status_code == 200
         html = response.get_data(as_text=True)
         assert 'portfolio-lightbox' in html
