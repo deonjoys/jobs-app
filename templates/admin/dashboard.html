@@ -9,18 +9,19 @@
 <body>
 
 <header class="site-head">
-  <div class="header-actions">
+  <div class="header-actions start">
     <a href="/" class="brand-link" aria-label="Go to the homepage">
       <span class="brand-mark">J</span>
       <span class="brand-copy">
         <strong>JobS Admin</strong>
-        <small>Roster & bookings</small>
+        <small>Roster &amp; bookings</small>
       </span>
     </a>
   </div>
+  <div></div>
   <div class="header-actions">
     <a href="/" class="portal-pill">Client site</a>
-    <a href="/admin/logout" class="icon-link" aria-label="Sign out">
+    <a href="/admin/logout" class="icon-link" aria-label="Sign out" title="Sign out">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
         <polyline points="16 17 21 12 16 7"></polyline>
@@ -30,7 +31,7 @@
   </div>
 </header>
 
-<div class="wrap" style="padding-top: 1.5rem;">
+<div class="wrap admin-wrap" style="padding-top: 1rem;">
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -42,14 +43,14 @@
 
   <div class="admin-topbar">
     <h2>Worker roster ({{ workers|length }})</h2>
-    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
-      <a href="{{ url_for('add_worker') }}" class="btn-solid" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">+ Add worker</a>
-      <a href="{{ url_for('change_password') }}" class="btn-ghost" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">Change password</a>
-      <a href="{{ url_for('admin_logout') }}" class="btn-ghost" style="text-decoration:none; display:inline-block; padding:0.6rem 1.2rem;">Logout</a>
+    <div class="admin-actions">
+      <a href="{{ url_for('change_password') }}" class="btn-ghost">Change password</a>
+      <a href="{{ url_for('add_worker') }}" class="btn-solid">+ Add worker</a>
     </div>
   </div>
 
-  <div class="panel" style="margin-top:0;">
+  <div class="panel flush" style="margin-top:0;">
+    <div class="table-wrap">
     <table class="ledger">
       <thead>
         <tr><th>Photo</th><th>Name</th><th>Trade</th><th>Phone</th><th>Experience</th><th>Status</th><th>Portfolio</th><th>Actions</th></tr>
@@ -64,7 +65,7 @@
               <span class="row-avatar-fallback">{{ worker.initials }}</span>
             {% endif %}
           </td>
-          <td>{{ worker.name }}</td>
+          <td><strong style="color:var(--ink); font-weight:600;">{{ worker.name }}</strong></td>
           <td>{{ worker.trade }}</td>
           <td>{{ worker.phone }}</td>
           <td>{{ worker.experience_years }} yrs</td>
@@ -84,16 +85,18 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="8" style="text-align:center;">No workers registered yet. Add your first pro above.</td></tr>
+        <tr><td colspan="8" class="empty">No workers registered yet. Add your first pro above.</td></tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="admin-topbar">
     <h2>Booking requests ({{ bookings|length }})</h2>
   </div>
-  <div class="panel" style="margin-top:0;">
+  <div class="panel flush" style="margin-top:0;">
+    <div class="table-wrap">
     <table class="ledger">
       <thead>
         <tr><th>ID</th><th>Client</th><th>Phone</th><th>Worker</th><th>Trade</th><th>Address</th><th>Date</th><th>Status</th><th></th></tr>
@@ -112,16 +115,17 @@
           <td>
             {% if booking.status != 'Confirmed' %}
             <form action="{{ url_for('confirm_booking', booking_id=booking.id) }}" method="POST">
-              <button type="submit" class="btn-ghost" style="padding:0.35rem 0.7rem; font-size:0.78rem;">Confirm</button>
+              <button type="submit" class="btn-ghost" style="padding:0.35rem 0.75rem; font-size:0.8rem;">Confirm</button>
             </form>
             {% endif %}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="9" style="text-align:center;">No orders received yet.</td></tr>
+        <tr><td colspan="9" class="empty">No orders received yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
 
 </div>

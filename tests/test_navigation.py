@@ -35,7 +35,7 @@ def test_admin_login_reveals_admin_portal():
         response = client.post('/admin/login', follow_redirects=True)
         assert response.status_code == 200
         html = response.get_data(as_text=True)
-        assert 'Admin Portal' in html
+        assert 'JobS Admin' in html
 
 
 def test_worker_profile_page_has_portfolio_lightbox_support():
@@ -65,7 +65,7 @@ def test_worker_profile_page_has_portfolio_lightbox_support():
         assert response.status_code == 200
         html = response.get_data(as_text=True)
         assert 'portfolio-lightbox' in html
-        assert 'Open media' in html
+        assert 'View' in html
 
 
 def test_home_page_has_booking_form_for_each_worker():

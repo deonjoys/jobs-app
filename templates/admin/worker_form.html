@@ -9,17 +9,23 @@
 <body>
 
 <header class="site-head">
-  <div class="brand">
-    <div class="brand-mark">J</div>
-    <div><h1>JobS Admin</h1><span class="sub">Roster &amp; bookings</span></div>
+  <div class="header-actions start">
+    <a href="/admin" class="brand-link" aria-label="Back to the dashboard">
+      <span class="brand-mark">J</span>
+      <span class="brand-copy">
+        <strong>JobS Admin</strong>
+        <small>Roster &amp; bookings</small>
+      </span>
+    </a>
   </div>
-  <nav class="site-nav">
-    <a href="/">Client Site</a>
-    <a href="/admin">Admin</a>
-  </nav>
+  <div></div>
+  <div class="header-actions">
+    <a href="/" class="portal-pill">Client site</a>
+    <a href="/admin" class="portal-pill">Dashboard</a>
+  </div>
 </header>
 
-<div class="wrap form-wrap" style="padding-top: 1.5rem;">
+<div class="wrap form-wrap" style="padding-top: 1rem;">
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -31,7 +37,7 @@
 
   <div class="admin-topbar">
     <h2>{{ 'Edit ' + worker.name if worker else 'Add a new worker' }}</h2>
-    <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost" style="text-decoration:none; display:inline-block;">← Back to roster</a>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost">← Back to roster</a>
   </div>
 
   <div class="panel" style="margin-top:0;">
@@ -88,7 +94,7 @@
       <div class="field">
         <label>Profile picture</label>
         {% if worker and worker.photo_url %}
-          <div style="margin-bottom:0.6rem;"><img src="{{ worker.photo_url }}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:1px solid var(--rule);"></div>
+          <div style="margin-bottom:0.6rem;"><img src="{{ worker.photo_url }}" alt="Current photo" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:1px solid var(--line);"></div>
         {% endif %}
         <input type="file" name="photo" accept="image/*">
         <small>{{ 'Upload a new photo to replace the current one.' if worker else 'JPG, PNG or WEBP.' }}</small>
@@ -109,9 +115,9 @@
               <button type="submit" class="thumb-remove" title="Remove">×</button>
             </form>
             <form action="{{ url_for('edit_portfolio_image', image_id=img.id) }}" method="POST" style="margin-top:0.45rem; display:block;">
-              <input type="text" name="caption" value="{{ img.caption or '' }}" placeholder="Caption (optional)" style="width:100%; padding:0.25rem 0.4rem; font-size:0.78rem; border-radius:6px; border:1px solid var(--rule);">
+              <input type="text" name="caption" value="{{ img.caption or '' }}" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">
               <div style="margin-top:0.3rem; text-align:right;">
-                <button type="submit" class="btn-ghost" style="padding:0.28rem 0.5rem; font-size:0.78rem;">Save</button>
+                <button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button>
               </div>
             </form>
           </div>
@@ -122,8 +128,8 @@
 
       <div class="field">
         <label>{{ 'Add more portfolio media' if worker else 'Portfolio media' }}</label>
-        <div style="display:flex; gap:0.6rem; align-items:center;">
-          <button id="add-portfolio-btn" class="btn-ghost">Add item</button>
+        <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+          <button type="button" id="add-portfolio-btn" class="btn-ghost">Add item</button>
           <input type="file" name="portfolio_images" accept="image/*,video/*" multiple style="display:none;">
           {% if worker %}
           <div id="portfolio-drop-zone" class="drop-zone">Drop files here or click Add item</div>
@@ -134,7 +140,7 @@
 
       <div class="btn-row">
         <button type="submit" class="btn-solid">{{ 'Save changes' if worker else 'Add worker' }}</button>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost" style="text-decoration:none; text-align:center;">Cancel</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost">Cancel</a>
       </div>
     </form>
   </div>
@@ -178,8 +184,8 @@ document.addEventListener('DOMContentLoaded', function(){
             inner += `\n<form action="/admin/portfolio/${item.id}/delete" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">`;
             inner += `<button type="submit" class="thumb-remove" title="Remove">×</button></form>`;
             inner += `<form action="/admin/portfolio/${item.id}/edit" method="POST" style="margin-top:0.45rem; display:block;">`;
-            inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.25rem 0.4rem; font-size:0.78rem; border-radius:6px; border:1px solid var(--rule);">`;
-            inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.28rem 0.5rem; font-size:0.78rem;">Save</button></div></form>`;
+            inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
+            inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button></div></form>`;
             div.innerHTML = inner;
             if(thumbManager) thumbManager.appendChild(div);
           });
@@ -194,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   if(dropZone){
+    dropZone.addEventListener('click', function(){ if(fileInput) fileInput.click(); });
     dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.classList.add('drop-zone-active'); });
     dropZone.addEventListener('dragleave', function(e){ dropZone.classList.remove('drop-zone-active'); });
     dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('drop-zone-active'); const files = e.dataTransfer.files; uploadFiles(files); });

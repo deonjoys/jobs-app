@@ -9,8 +9,12 @@
 <body>
   <div class="auth-shell">
     <div class="auth-card">
-      <h2>Admin Portal</h2>
-      <p>Sign in to view the admin portal.</p>
+      <div class="auth-brand">
+        <span class="brand-mark">J</span>
+        <strong>JobS Admin</strong>
+      </div>
+      <h2>Welcome back</h2>
+      <p>Sign in to access the admin portal.</p>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
@@ -21,7 +25,7 @@
       <form method="post" action="{{ url_for('admin_login') }}">
         <div class="field">
           <label for="password">Password</label>
-          <input type="password" id="password" name="password" required>
+          <input type="password" id="password" name="password" autocomplete="current-password" required autofocus>
         </div>
         <button type="submit" class="btn-solid">Sign in</button>
       </form>
