@@ -14,7 +14,7 @@
     <span class="brand-mark">JS</span>
     <span class="brand-copy">
       <strong>JobS</strong>
-      <small>Jobs & Services</small>
+      <small>Jobs &amp; Services</small>
     </span>
   </a>
   <div class="header-actions">
@@ -28,8 +28,8 @@
 
   <div class="hero">
     <span class="eyebrow">Verified pros, real portfolios</span>
-    <h2>Book professionals now</h2>
-    <p>Connect with vetted tradespeople and secure your booking now..</p>
+    <h2>Find and book a trusted professional</h2>
+    <p>Connect with vetted tradespeople, browse their past work, and secure your booking in minutes.</p>
   </div>
 
   <div class="control-bar" id="search-panel">
@@ -65,7 +65,7 @@
           <div class="pro-avatar-fallback">{{ worker.initials }}</div>
         {% endif %}
         <div class="seal" title="Verified pro">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
       </div>
       <div class="pro-body">
@@ -95,7 +95,7 @@
         {% endif %}
 
         <div class="pro-actions">
-          <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">Info</a>
+          <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">View profile</a>
           <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}', '{{ worker.phone|e }}')">Contact</button>
         </div>
       </div>
@@ -156,6 +156,12 @@
 </div>
 
 <script>
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
 function toggleWorkerInfo(button) {
   const panel = button.closest('.pro-actions').nextElementSibling;
   if (panel && panel.classList.contains('worker-info-panel')) {
@@ -170,10 +176,10 @@ function openBookingModal(id, name, trade, phone) {
   const safePhone = phone || 'Phone not provided';
   modalContent.innerHTML = `
     <div class="contact-card-body">
-      <div class="contact-name">${name}</div>
-      <div class="contact-trade">${trade}</div>
-      <div class="contact-phone">${safePhone}</div>
-      <a class="btn-solid call-link" href="tel:${safePhone}">Call now</a>
+      <div class="contact-name">${esc(name)}</div>
+      <div class="contact-trade">${esc(trade)}</div>
+      <div class="contact-phone">${esc(safePhone)}</div>
+      <a class="btn-solid call-link" href="tel:${esc(safePhone)}">Call now</a>
     </div>
   `;
   document.getElementById('bookingModal').style.display = 'flex';
@@ -183,13 +189,13 @@ function closeBookingModal() { document.getElementById('bookingModal').style.dis
 function openPortfolio(workerId, name) {
   document.getElementById('portfolioTitle').innerText = name + "'s Portfolio";
   const gallery = document.getElementById('portfolioGallery');
-  gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">Loading...</p>';
+  gallery.innerHTML = '<p style="color:#64748b;font-size:.875rem;">Loading...</p>';
   document.getElementById('portfolioModal').style.display = 'flex';
   fetch('/api/worker/' + workerId + '/portfolio')
     .then(r => r.json())
     .then(data => {
       if (!data.images.length) {
-        gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">No portfolio photos yet.</p>';
+        gallery.innerHTML = '<p style="color:#64748b;font-size:.875rem;">No portfolio photos yet.</p>';
         return;
       }
       gallery.innerHTML = data.images.map(img => {
@@ -197,16 +203,16 @@ function openPortfolio(workerId, name) {
           return `
             <div class="portfolio-media-card">
               <video controls playsinline preload="metadata">
-                <source src="${img.url}">
+                <source src="${esc(img.url)}">
               </video>
-              ${img.caption ? `<p class="portfolio-caption">${img.caption}</p>` : ''}
+              ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
             </div>
           `;
         }
         return `
           <div class="portfolio-media-card">
-            <img src="${img.url}" alt="${img.caption || 'Portfolio photo'}">
-            ${img.caption ? `<p class="portfolio-caption">${img.caption}</p>` : ''}
+            <img src="${esc(img.url)}" alt="${esc(img.caption || 'Portfolio photo')}">
+            ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
           </div>
         `;
       }).join('');
@@ -216,6 +222,9 @@ function closePortfolio() { document.getElementById('portfolioModal').style.disp
 
 [document.getElementById('bookingModal'), document.getElementById('portfolioModal')].forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeBookingModal(); closePortfolio(); }
 });
 </script>
 </body>
