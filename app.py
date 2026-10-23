@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+from datetime import date
 from flask import Flask, abort, render_template, request, redirect, url_for, flash, jsonify, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -125,8 +126,9 @@ class Worker(db.Model):
     @property
     def availability_list(self):
         try:
-            return json.loads(self.availability) if self.availability else []
-        except Exception:
+            availability = json.loads(self.availability) if self.availability else []
+            return availability if isinstance(availability, list) else []
+        except (TypeError, ValueError):
             return []
 
 
@@ -152,11 +154,6 @@ class AdminConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     password_hash = db.Column(db.String(255), nullable=False)
 
-    @property
-    def file_type(self):
-        ext = self.filename.rsplit('.', 1)[1].lower() if '.' in self.filename else ''
-        return 'video' if ext in VIDEO_EXT else 'image'
-
 
 class Booking(db.Model):
     __tablename__ = 'bookings'
@@ -181,7 +178,10 @@ def save_upload(file_storage, folder):
         return None
     if not allowed_file(file_storage.filename):
         return None
-    ext = secure_filename(file_storage.filename).rsplit('.', 1)[1].lower()
+    safe_name = secure_filename(file_storage.filename)
+    if '.' not in safe_name:
+        return None
+    ext = safe_name.rsplit('.', 1)[1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
     file_storage.save(os.path.join(folder, filename))
     return filename
@@ -219,12 +219,26 @@ def client_home():
 
 @app.route('/book', methods=['POST'])
 def create_booking():
+    worker_id = request.form.get('worker_id', type=int)
+    client_name = request.form.get('client_name', '').strip()
+    client_phone = request.form.get('client_phone', '').strip()
+    service_address = request.form.get('service_address', '').strip()
+    booking_date = request.form.get('booking_date', '').strip()
+    worker = db.session.get(Worker, worker_id) if worker_id else None
+    try:
+        date.fromisoformat(booking_date)
+    except ValueError:
+        booking_date = ''
+    if not worker or not client_name or not client_phone or not service_address or not booking_date:
+        flash('Please complete all booking details and choose a valid worker.', 'error')
+        return redirect(url_for('client_home'))
+
     new_booking = Booking(
-        worker_id=request.form.get('worker_id'),
-        client_name=request.form.get('client_name'),
-        client_phone=request.form.get('client_phone'),
-        service_address=request.form.get('service_address'),
-        booking_date=request.form.get('booking_date'),
+        worker_id=worker.id,
+        client_name=client_name,
+        client_phone=client_phone,
+        service_address=service_address,
+        booking_date=booking_date,
     )
     db.session.add(new_booking)
     db.session.commit()
@@ -234,7 +248,7 @@ def create_booking():
 
 @app.route('/worker/<int:worker_id>')
 def worker_profile(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+    worker = db.get_or_404(Worker, worker_id)
     return render_template('worker_profile.html', worker=worker)
 
 
@@ -300,16 +314,36 @@ def admin_dashboard():
 @app.route('/admin/workers/new', methods=['GET', 'POST'])
 def add_worker():
     if request.method == 'POST':
+        experience_years = request.form.get('experience_years', type=int)
+        name = request.form.get('name', '').strip()
+        trade = request.form.get('trade', '').strip()
+        phone = request.form.get('phone', '').strip()
+        if (
+            not name
+            or trade not in TRADES
+            or not phone
+            or experience_years is None
+            or experience_years < 0
+            or request.form.get('status', 'Available') not in {'Available', 'Booked'}
+        ):
+            flash('Enter a valid name, trade, phone number, and experience value.', 'error')
+            return render_template(
+                'admin/worker_form.html',
+                worker=None,
+                trades=TRADES,
+                selected_availability=request.form.getlist('availability'),
+            ), 400
+
         photo_filename = save_upload(request.files.get('photo'), WORKER_PHOTO_DIR)
 
         worker = Worker(
-            name=request.form.get('name'),
-            trade=request.form.get('trade'),
-            phone=request.form.get('phone'),
-            location=request.form.get('location'),
+            name=name,
+            trade=trade,
+            phone=phone,
+            location=request.form.get('location', '').strip(),
             hourly_rate=0,
-            experience_years=int(request.form.get('experience_years')),
-            bio=request.form.get('bio'),
+            experience_years=experience_years,
+            bio=request.form.get('bio', '').strip(),
             availability=json.dumps(request.form.getlist('availability')),
             status=request.form.get('status', 'Available'),
             photo_filename=photo_filename,
@@ -331,15 +365,35 @@ def add_worker():
 
 @app.route('/admin/workers/<int:worker_id>/edit', methods=['GET', 'POST'])
 def edit_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+    worker = db.get_or_404(Worker, worker_id)
 
     if request.method == 'POST':
-        worker.name = request.form.get('name')
-        worker.trade = request.form.get('trade')
-        worker.phone = request.form.get('phone')
-        worker.location = request.form.get('location')
-        worker.experience_years = int(request.form.get('experience_years'))
-        worker.bio = request.form.get('bio')
+        experience_years = request.form.get('experience_years', type=int)
+        name = request.form.get('name', '').strip()
+        trade = request.form.get('trade', '').strip()
+        phone = request.form.get('phone', '').strip()
+        if (
+            not name
+            or trade not in TRADES
+            or not phone
+            or experience_years is None
+            or experience_years < 0
+            or request.form.get('status', 'Available') not in {'Available', 'Booked'}
+        ):
+            flash('Enter a valid name, trade, phone number, and experience value.', 'error')
+            return render_template(
+                'admin/worker_form.html',
+                worker=worker,
+                trades=TRADES,
+                selected_availability=request.form.getlist('availability'),
+            ), 400
+
+        worker.name = name
+        worker.trade = trade
+        worker.phone = phone
+        worker.location = request.form.get('location', '').strip()
+        worker.experience_years = experience_years
+        worker.bio = request.form.get('bio', '').strip()
         worker.availability = json.dumps(request.form.getlist('availability'))
         worker.status = request.form.get('status', 'Available')
 
@@ -359,14 +413,14 @@ def edit_worker(worker_id):
 
     try:
         selected_availability = json.loads(worker.availability) if worker.availability else []
-    except Exception:
+    except (TypeError, ValueError):
         selected_availability = []
     return render_template('admin/worker_form.html', worker=worker, trades=TRADES, selected_availability=selected_availability)
 
 
 @app.route('/admin/workers/<int:worker_id>/delete', methods=['POST'])
 def delete_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+    worker = db.get_or_404(Worker, worker_id)
     delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
     for img in worker.portfolio_images:
         delete_file(PORTFOLIO_DIR, img.filename)
@@ -379,7 +433,7 @@ def delete_worker(worker_id):
 
 @app.route('/admin/portfolio/<int:image_id>/delete', methods=['POST'])
 def delete_portfolio_image(image_id):
-    image = PortfolioImage.query.get_or_404(image_id)
+    image = db.get_or_404(PortfolioImage, image_id)
     worker_id = image.worker_id
     delete_file(PORTFOLIO_DIR, image.filename)
     db.session.delete(image)
@@ -390,7 +444,7 @@ def delete_portfolio_image(image_id):
 
 @app.route('/admin/portfolio/<int:image_id>/edit', methods=['POST'])
 def edit_portfolio_image(image_id):
-    image = PortfolioImage.query.get_or_404(image_id)
+    image = db.get_or_404(PortfolioImage, image_id)
     worker_id = image.worker_id
     caption = request.form.get('caption', '').strip()
     image.caption = caption if caption else None
@@ -401,7 +455,7 @@ def edit_portfolio_image(image_id):
 
 @app.route('/admin/workers/<int:worker_id>/upload', methods=['POST'])
 def upload_portfolio_items(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+    worker = db.get_or_404(Worker, worker_id)
     files = request.files.getlist('files')
     created = []
     for f in files:
@@ -417,7 +471,7 @@ def upload_portfolio_items(worker_id):
 
 @app.route('/admin/booking/<int:booking_id>/confirm', methods=['POST'])
 def confirm_booking(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
+    booking = db.get_or_404(Booking, booking_id)
     booking.status = 'Confirmed'
     db.session.commit()
     flash(f"Booking #{booking.id} confirmed.", "success")
@@ -427,7 +481,7 @@ def confirm_booking(booking_id):
 # ---------- JSON API (used by the client-side portfolio modal) ----------
 @app.route('/api/worker/<int:worker_id>/portfolio')
 def worker_portfolio_json(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+    worker = db.get_or_404(Worker, worker_id)
     return jsonify({
         'name': worker.name,
         'trade': worker.trade,

@@ -1,20 +1,8 @@
 {
-<<<<<<< HEAD
-  "version": 2,
-  "builds": [
-    {
-      "src": "app.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "app.py"
-    }
-=======
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py" }
->>>>>>> a02e909a3de9bffd11fd3e941b0ed4788fdf4a39
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
   ]
 }

@@ -114,12 +114,32 @@
 <!-- Contact modal -->
 <div id="bookingModal" class="modal">
   <div class="modal-card">
-    <h3 id="modalTitle">Contact pro</h3>
-    <p class="modal-sub">Reach out directly using the details below.</p>
+    <h3 id="modalTitle">Book a pro</h3>
+    <p class="modal-sub">Send a booking request or call this professional directly.</p>
     <div id="modalContent" class="contact-card"></div>
-    <div class="btn-row">
-      <button type="button" class="btn-ghost" onclick="closeBookingModal()">Close</button>
-    </div>
+    <form action="{{ url_for('create_booking') }}" method="post" class="booking-form">
+      <input type="hidden" id="bookingWorkerId" name="worker_id">
+      <div class="field">
+        <label for="clientName">Your name</label>
+        <input id="clientName" type="text" name="client_name" required>
+      </div>
+      <div class="field">
+        <label for="clientPhone">Your phone</label>
+        <input id="clientPhone" type="tel" name="client_phone" required>
+      </div>
+      <div class="field">
+        <label for="serviceAddress">Service address</label>
+        <textarea id="serviceAddress" name="service_address" rows="2" required></textarea>
+      </div>
+      <div class="field">
+        <label for="bookingDate">Preferred date</label>
+        <input id="bookingDate" type="date" name="booking_date" required>
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn-solid">Send booking request</button>
+        <button type="button" class="btn-ghost" onclick="closeBookingModal()">Close</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -145,6 +165,7 @@ function toggleWorkerInfo(button) {
 
 function openBookingModal(id, name, trade, phone) {
   document.getElementById('modalTitle').innerText = name;
+  document.getElementById('bookingWorkerId').value = id;
   const modalContent = document.getElementById('modalContent');
   const safePhone = phone || 'Phone not provided';
   modalContent.innerHTML = `
