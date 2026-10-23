@@ -20,6 +20,7 @@
         <small>Trusted pros</small>
       </span>
     </a>
+    <div class="header-actions"></div>
   </header>
 
   <div class="wrap profile-page">
@@ -49,9 +50,11 @@
           </div>
         {% endif %}
         <div class="profile-contact">
-          <strong>{{ worker.phone }}</strong>
-          <span>Phone</span>
           <a class="btn-solid" href="tel:{{ worker.phone }}">Call worker</a>
+          <div>
+            <strong>{{ worker.phone }}</strong><br>
+            <span>Phone</span>
+          </div>
         </div>
       </div>
     </div>
@@ -78,7 +81,7 @@
                 <span class="media-badge">Video</span>
               {% else %}
                 <img src="{{ item.url }}" alt="{{ item.caption or 'Portfolio photo' }}">
-                <span class="media-badge media-badge-image">Open media</span>
+                <span class="media-badge media-badge-image">View</span>
               {% endif %}
             </button>
           {% endfor %}
@@ -88,6 +91,8 @@
       {% endif %}
     </div>
   </div>
+
+  <footer class="site-foot">JobS — connecting clients with verified contractors and repair pros.</footer>
 
   <div id="portfolioLightbox" class="portfolio-lightbox" hidden>
     <div class="portfolio-lightbox-dialog">
@@ -102,6 +107,12 @@
       const content = document.getElementById('portfolioLightboxContent');
       const closeButton = document.querySelector('.portfolio-lightbox-close');
 
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+      }
+
       function closeLightbox() {
         lightbox.hidden = true;
         content.innerHTML = '';
@@ -109,9 +120,9 @@
 
       document.querySelectorAll('.media-button').forEach((button) => {
         button.addEventListener('click', function () {
-          const url = button.dataset.mediaUrl;
+          const url = esc(button.dataset.mediaUrl);
           const type = button.dataset.mediaType;
-          const caption = button.dataset.caption || 'Portfolio item';
+          const caption = esc(button.dataset.caption || 'Portfolio item');
 
           if (type === 'video') {
             content.innerHTML = `

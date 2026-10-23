@@ -21,10 +21,17 @@ The app creates its tables on startup. On first startup it also creates the
 admin account using `ADMIN_PASSWORD`; changing that environment variable later
 does not reset an existing admin password.
 
-Vercel's function filesystem is not persistent. Uploads are written to `/tmp`
-so the upload flow can run, but files may disappear between function
-invocations and are not durable. Configure object storage before relying on
-worker photos or portfolio uploads in production.
+In the admin worker form, use **+ Add Photos** and **+ Add Videos** to select
+multiple portfolio files. Local previews are shown immediately, and portfolio
+media is saved as Data URLs in the database. Contractors' portfolio photos can
+be opened in a lightbox, and videos play in the home-page Info modal. Portfolio
+uploads are limited by the app's 16 MB request-size limit; storing Data URLs
+increases database storage use.
+
+Vercel's function filesystem is not persistent. Portfolio media is stored in
+the database, but worker profile photos are still written to `/tmp` and may
+disappear between function invocations. Configure object storage for durable
+worker profile photos in production.
 
 ## Run locally
 

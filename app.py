@@ -1,6 +1,11 @@
 import os
 import uuid
 import json
+<<<<<<< HEAD
+import base64
+=======
+from datetime import date
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 from flask import Flask, abort, render_template, request, redirect, url_for, flash, jsonify, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
@@ -125,8 +130,9 @@ class Worker(db.Model):
     @property
     def availability_list(self):
         try:
-            return json.loads(self.availability) if self.availability else []
-        except Exception:
+            availability = json.loads(self.availability) if self.availability else []
+            return availability if isinstance(availability, list) else []
+        except (TypeError, ValueError):
             return []
 
 
@@ -136,9 +142,12 @@ class PortfolioImage(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     caption = db.Column(db.String(150), nullable=True)
+    data_url = db.Column(db.Text, nullable=True)
 
     @property
     def url(self):
+        if self.data_url:
+            return self.data_url
         return uploaded_file_url('portfolio', self.filename)
 
     @property
@@ -151,11 +160,6 @@ class AdminConfig(db.Model):
     __tablename__ = 'admin_config'
     id = db.Column(db.Integer, primary_key=True)
     password_hash = db.Column(db.String(255), nullable=False)
-
-    @property
-    def file_type(self):
-        ext = self.filename.rsplit('.', 1)[1].lower() if '.' in self.filename else ''
-        return 'video' if ext in VIDEO_EXT else 'image'
 
 
 class Booking(db.Model):
@@ -173,18 +177,60 @@ class Booking(db.Model):
 
 # ---------- Helpers ----------
 def allowed_file(filename):
+    if not filename:
+        return False
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
 
 
 def save_upload(file_storage, folder):
-    if not file_storage or file_storage.filename == '':
+    if not file_storage or not getattr(file_storage, 'filename', ''):
         return None
     if not allowed_file(file_storage.filename):
         return None
-    ext = secure_filename(file_storage.filename).rsplit('.', 1)[1].lower()
+    safe_name = secure_filename(file_storage.filename)
+    if '.' not in safe_name:
+        return None
+    ext = safe_name.rsplit('.', 1)[1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
     file_storage.save(os.path.join(folder, filename))
     return filename
+
+
+def build_portfolio_media(file_storage):
+    if not file_storage or not getattr(file_storage, 'filename', ''):
+        return None
+    safe_name = secure_filename(file_storage.filename)
+    if not allowed_file(safe_name):
+        raise ValueError(f"Unsupported portfolio file: {file_storage.filename}")
+
+    extension = safe_name.rsplit('.', 1)[1].lower()
+    mime_types = {
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'webp': 'image/webp',
+        'gif': 'image/gif',
+        'mp4': 'video/mp4',
+        'webm': 'video/webm',
+        'mov': 'video/quicktime',
+    }
+    content = file_storage.read()
+    if not content:
+        raise ValueError(f"Portfolio file is empty: {file_storage.filename}")
+    file_storage.seek(0)
+    filename = f"{uuid.uuid4().hex}.{extension}"
+    data_url = f"data:{mime_types[extension]};base64,{base64.b64encode(content).decode('ascii')}"
+    return {'filename': filename, 'data_url': data_url}
+
+
+def parse_required_int(value, field_name):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be a valid whole number.") from None
+    if parsed < 0:
+        raise ValueError(f"{field_name} must not be negative.")
+    return parsed
 
 
 def delete_file(folder, filename):
@@ -219,12 +265,51 @@ def client_home():
 
 @app.route('/book', methods=['POST'])
 def create_booking():
+<<<<<<< HEAD
+    worker_id = request.form.get('worker_id')
+    try:
+        worker_id_int = int(worker_id) if worker_id not in (None, '') else None
+    except (TypeError, ValueError):
+        flash('Please select a valid worker.', 'error')
+        return redirect(url_for('client_home'))
+
+    if worker_id_int is None or not db.session.get(Worker, worker_id_int):
+        flash('Please select a valid worker.', 'error')
+        return redirect(url_for('client_home'))
+
+    client_name = (request.form.get('client_name') or '').strip()
+    client_phone = (request.form.get('client_phone') or '').strip()
+    service_address = (request.form.get('service_address') or '').strip()
+    booking_date = (request.form.get('booking_date') or '').strip()
+
+    if not client_name or not client_phone or not service_address or not booking_date:
+        flash('Please complete all booking details.', 'error')
+        return redirect(url_for('client_home'))
+
     new_booking = Booking(
-        worker_id=request.form.get('worker_id'),
-        client_name=request.form.get('client_name'),
-        client_phone=request.form.get('client_phone'),
-        service_address=request.form.get('service_address'),
-        booking_date=request.form.get('booking_date'),
+        worker_id=worker_id_int,
+=======
+    worker_id = request.form.get('worker_id', type=int)
+    client_name = request.form.get('client_name', '').strip()
+    client_phone = request.form.get('client_phone', '').strip()
+    service_address = request.form.get('service_address', '').strip()
+    booking_date = request.form.get('booking_date', '').strip()
+    worker = db.session.get(Worker, worker_id) if worker_id else None
+    try:
+        date.fromisoformat(booking_date)
+    except ValueError:
+        booking_date = ''
+    if not worker or not client_name or not client_phone or not service_address or not booking_date:
+        flash('Please complete all booking details and choose a valid worker.', 'error')
+        return redirect(url_for('client_home'))
+
+    new_booking = Booking(
+        worker_id=worker.id,
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+        client_name=client_name,
+        client_phone=client_phone,
+        service_address=service_address,
+        booking_date=booking_date,
     )
     db.session.add(new_booking)
     db.session.commit()
@@ -234,7 +319,13 @@ def create_booking():
 
 @app.route('/worker/<int:worker_id>')
 def worker_profile(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+<<<<<<< HEAD
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
+=======
+    worker = db.get_or_404(Worker, worker_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     return render_template('worker_profile.html', worker=worker)
 
 
@@ -300,16 +391,68 @@ def admin_dashboard():
 @app.route('/admin/workers/new', methods=['GET', 'POST'])
 def add_worker():
     if request.method == 'POST':
+<<<<<<< HEAD
+        try:
+            portfolio_media = [
+                media for media in
+                (build_portfolio_media(f) for f in request.files.getlist('portfolio_images'))
+                if media
+            ]
+        except ValueError as error:
+            flash(str(error), 'error')
+            return redirect(url_for('add_worker'))
+
+        try:
+            experience_years = parse_required_int(request.form.get('experience_years'), 'Experience years')
+        except ValueError as error:
+            flash(str(error), 'error')
+            return redirect(url_for('add_worker'))
+
+        name = (request.form.get('name') or '').strip()
+        trade = (request.form.get('trade') or '').strip()
+        phone = (request.form.get('phone') or '').strip()
+        if not name or not trade or not phone:
+            flash('Name, trade, and phone are required.', 'error')
+            return redirect(url_for('add_worker'))
+=======
+        experience_years = request.form.get('experience_years', type=int)
+        name = request.form.get('name', '').strip()
+        trade = request.form.get('trade', '').strip()
+        phone = request.form.get('phone', '').strip()
+        if (
+            not name
+            or trade not in TRADES
+            or not phone
+            or experience_years is None
+            or experience_years < 0
+            or request.form.get('status', 'Available') not in {'Available', 'Booked'}
+        ):
+            flash('Enter a valid name, trade, phone number, and experience value.', 'error')
+            return render_template(
+                'admin/worker_form.html',
+                worker=None,
+                trades=TRADES,
+                selected_availability=request.form.getlist('availability'),
+            ), 400
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+
         photo_filename = save_upload(request.files.get('photo'), WORKER_PHOTO_DIR)
 
         worker = Worker(
-            name=request.form.get('name'),
-            trade=request.form.get('trade'),
-            phone=request.form.get('phone'),
-            location=request.form.get('location'),
+            name=name,
+            trade=trade,
+            phone=phone,
+<<<<<<< HEAD
+            location=(request.form.get('location') or '').strip() or None,
             hourly_rate=0,
-            experience_years=int(request.form.get('experience_years')),
-            bio=request.form.get('bio'),
+            experience_years=experience_years,
+            bio=(request.form.get('bio') or '').strip() or None,
+=======
+            location=request.form.get('location', '').strip(),
+            hourly_rate=0,
+            experience_years=experience_years,
+            bio=request.form.get('bio', '').strip(),
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
             availability=json.dumps(request.form.getlist('availability')),
             status=request.form.get('status', 'Available'),
             photo_filename=photo_filename,
@@ -317,10 +460,8 @@ def add_worker():
         db.session.add(worker)
         db.session.flush()  # get worker.id before commit
 
-        for f in request.files.getlist('portfolio_images'):
-            fname = save_upload(f, PORTFOLIO_DIR)
-            if fname:
-                db.session.add(PortfolioImage(worker_id=worker.id, filename=fname))
+        for media in portfolio_media:
+            db.session.add(PortfolioImage(worker_id=worker.id, **media))
 
         db.session.commit()
         flash(f"{worker.name} was added to the roster.", "success")
@@ -331,15 +472,71 @@ def add_worker():
 
 @app.route('/admin/workers/<int:worker_id>/edit', methods=['GET', 'POST'])
 def edit_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+<<<<<<< HEAD
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
 
     if request.method == 'POST':
-        worker.name = request.form.get('name')
-        worker.trade = request.form.get('trade')
-        worker.phone = request.form.get('phone')
-        worker.location = request.form.get('location')
-        worker.experience_years = int(request.form.get('experience_years'))
-        worker.bio = request.form.get('bio')
+        try:
+            portfolio_media = [
+                media for media in
+                (build_portfolio_media(f) for f in request.files.getlist('portfolio_images'))
+                if media
+            ]
+        except ValueError as error:
+            flash(str(error), 'error')
+            return redirect(url_for('edit_worker', worker_id=worker.id))
+
+        try:
+            experience_years = parse_required_int(request.form.get('experience_years'), 'Experience years')
+        except ValueError as error:
+            flash(str(error), 'error')
+            return redirect(url_for('edit_worker', worker_id=worker.id))
+
+        name = (request.form.get('name') or '').strip()
+        trade = (request.form.get('trade') or '').strip()
+        phone = (request.form.get('phone') or '').strip()
+        if not name or not trade or not phone:
+            flash('Name, trade, and phone are required.', 'error')
+            return redirect(url_for('edit_worker', worker_id=worker.id))
+=======
+    worker = db.get_or_404(Worker, worker_id)
+
+    if request.method == 'POST':
+        experience_years = request.form.get('experience_years', type=int)
+        name = request.form.get('name', '').strip()
+        trade = request.form.get('trade', '').strip()
+        phone = request.form.get('phone', '').strip()
+        if (
+            not name
+            or trade not in TRADES
+            or not phone
+            or experience_years is None
+            or experience_years < 0
+            or request.form.get('status', 'Available') not in {'Available', 'Booked'}
+        ):
+            flash('Enter a valid name, trade, phone number, and experience value.', 'error')
+            return render_template(
+                'admin/worker_form.html',
+                worker=worker,
+                trades=TRADES,
+                selected_availability=request.form.getlist('availability'),
+            ), 400
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+
+        worker.name = name
+        worker.trade = trade
+        worker.phone = phone
+<<<<<<< HEAD
+        worker.location = (request.form.get('location') or '').strip() or None
+        worker.experience_years = experience_years
+        worker.bio = (request.form.get('bio') or '').strip() or None
+=======
+        worker.location = request.form.get('location', '').strip()
+        worker.experience_years = experience_years
+        worker.bio = request.form.get('bio', '').strip()
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
         worker.availability = json.dumps(request.form.getlist('availability'))
         worker.status = request.form.get('status', 'Available')
 
@@ -348,10 +545,8 @@ def edit_worker(worker_id):
             delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
             worker.photo_filename = new_photo
 
-        for f in request.files.getlist('portfolio_images'):
-            fname = save_upload(f, PORTFOLIO_DIR)
-            if fname:
-                db.session.add(PortfolioImage(worker_id=worker.id, filename=fname))
+        for media in portfolio_media:
+            db.session.add(PortfolioImage(worker_id=worker.id, **media))
 
         db.session.commit()
         flash(f"{worker.name}'s profile was updated.", "success")
@@ -359,17 +554,24 @@ def edit_worker(worker_id):
 
     try:
         selected_availability = json.loads(worker.availability) if worker.availability else []
-    except Exception:
+    except (TypeError, ValueError):
         selected_availability = []
     return render_template('admin/worker_form.html', worker=worker, trades=TRADES, selected_availability=selected_availability)
 
 
 @app.route('/admin/workers/<int:worker_id>/delete', methods=['POST'])
 def delete_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+<<<<<<< HEAD
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
+=======
+    worker = db.get_or_404(Worker, worker_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
     for img in worker.portfolio_images:
-        delete_file(PORTFOLIO_DIR, img.filename)
+        if not img.data_url:
+            delete_file(PORTFOLIO_DIR, img.filename)
     name = worker.name
     db.session.delete(worker)
     db.session.commit()
@@ -379,9 +581,16 @@ def delete_worker(worker_id):
 
 @app.route('/admin/portfolio/<int:image_id>/delete', methods=['POST'])
 def delete_portfolio_image(image_id):
-    image = PortfolioImage.query.get_or_404(image_id)
+<<<<<<< HEAD
+    image = db.session.get(PortfolioImage, image_id)
+    if image is None:
+        abort(404)
+=======
+    image = db.get_or_404(PortfolioImage, image_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     worker_id = image.worker_id
-    delete_file(PORTFOLIO_DIR, image.filename)
+    if not image.data_url:
+        delete_file(PORTFOLIO_DIR, image.filename)
     db.session.delete(image)
     db.session.commit()
     flash("Portfolio photo removed.", "success")
@@ -390,7 +599,13 @@ def delete_portfolio_image(image_id):
 
 @app.route('/admin/portfolio/<int:image_id>/edit', methods=['POST'])
 def edit_portfolio_image(image_id):
-    image = PortfolioImage.query.get_or_404(image_id)
+<<<<<<< HEAD
+    image = db.session.get(PortfolioImage, image_id)
+    if image is None:
+        abort(404)
+=======
+    image = db.get_or_404(PortfolioImage, image_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     worker_id = image.worker_id
     caption = request.form.get('caption', '').strip()
     image.caption = caption if caption else None
@@ -401,23 +616,45 @@ def edit_portfolio_image(image_id):
 
 @app.route('/admin/workers/<int:worker_id>/upload', methods=['POST'])
 def upload_portfolio_items(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+<<<<<<< HEAD
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
+=======
+    worker = db.get_or_404(Worker, worker_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     files = request.files.getlist('files')
+    try:
+        portfolio_media = [
+            media for media in (build_portfolio_media(f) for f in files) if media
+        ]
+    except ValueError as error:
+        return jsonify({'error': str(error)}), 400
+
     created = []
-    for f in files:
-        fname = save_upload(f, PORTFOLIO_DIR)
-        if fname:
-            pi = PortfolioImage(worker_id=worker.id, filename=fname)
-            db.session.add(pi)
-            db.session.flush()
-            created.append({'id': pi.id, 'url': pi.url, 'type': pi.file_type, 'caption': pi.caption or ''})
+    for media in portfolio_media:
+        item = PortfolioImage(worker_id=worker.id, **media)
+        db.session.add(item)
+        db.session.flush()
+        created.append({
+            'id': item.id,
+            'url': item.url,
+            'type': item.file_type,
+            'caption': item.caption or '',
+        })
     db.session.commit()
     return jsonify({'items': created})
 
 
 @app.route('/admin/booking/<int:booking_id>/confirm', methods=['POST'])
 def confirm_booking(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
+<<<<<<< HEAD
+    booking = db.session.get(Booking, booking_id)
+    if booking is None:
+        abort(404)
+=======
+    booking = db.get_or_404(Booking, booking_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     booking.status = 'Confirmed'
     db.session.commit()
     flash(f"Booking #{booking.id} confirmed.", "success")
@@ -427,11 +664,24 @@ def confirm_booking(booking_id):
 # ---------- JSON API (used by the client-side portfolio modal) ----------
 @app.route('/api/worker/<int:worker_id>/portfolio')
 def worker_portfolio_json(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
+<<<<<<< HEAD
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
+=======
+    worker = db.get_or_404(Worker, worker_id)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     return jsonify({
         'name': worker.name,
         'trade': worker.trade,
-        'images': [{'url': img.url, 'caption': img.caption, 'type': img.file_type} for img in worker.portfolio_images],
+        'phone': worker.phone,
+        'location': worker.location or '',
+        'bio': worker.bio or '',
+        'availability': worker.availability_list,
+        'images': [
+            {'url': img.url, 'caption': img.caption or '', 'type': img.file_type}
+            for img in worker.portfolio_images
+        ],
     })
 
 
@@ -451,10 +701,22 @@ def ensure_worker_columns():
         db.session.commit()
 
 
+def ensure_portfolio_media_column():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if 'portfolio_images' not in inspector.get_table_names():
+            return
+        columns = {column['name'] for column in inspector.get_columns('portfolio_images')}
+        if 'data_url' not in columns:
+            db.session.execute(text("ALTER TABLE portfolio_images ADD COLUMN data_url TEXT"))
+            db.session.commit()
+
+
 def init_db():
     with app.app_context():
         db.create_all()
         ensure_worker_columns()
+        ensure_portfolio_media_column()
         get_admin_config()
 
 

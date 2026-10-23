@@ -14,7 +14,7 @@
     <span class="brand-mark">JS</span>
     <span class="brand-copy">
       <strong>JobS</strong>
-      <small>Jobs & Services</small>
+      <small>Jobs &amp; Services</small>
     </span>
   </a>
   <div class="header-actions">
@@ -28,8 +28,8 @@
 
   <div class="hero">
     <span class="eyebrow">Verified pros, real portfolios</span>
-    <h2>Book professionals now</h2>
-    <p>Connect with vetted tradespeople and secure your booking now..</p>
+    <h2>Find and book a trusted professional</h2>
+    <p>Connect with vetted tradespeople, browse their past work, and secure your booking in minutes.</p>
   </div>
 
   <div class="control-bar" id="search-panel">
@@ -65,7 +65,7 @@
           <div class="pro-avatar-fallback">{{ worker.initials }}</div>
         {% endif %}
         <div class="seal" title="Verified pro">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
       </div>
       <div class="pro-body">
@@ -77,10 +77,10 @@
 
         {% if worker.portfolio_images %}
         <div class="portfolio-strip portfolio-trigger"
-             onclick="openPortfolio('{{ worker.id }}', '{{ worker.name|e }}')"
+             onclick="openWorkerInfo('{{ worker.id }}')"
              tabindex="0"
              role="button"
-             aria-label="Open {{ worker.name }} portfolio">
+             aria-label="Open {{ worker.name }} information and portfolio">
           {% for img in worker.portfolio_images[:3] %}
             {% if img.file_type == 'video' %}
               <div class="video-thumb">Video</div>
@@ -95,7 +95,11 @@
         {% endif %}
 
         <div class="pro-actions">
-          <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">Info</a>
+<<<<<<< HEAD
+          <button type="button" class="btn-info" onclick="openWorkerInfo('{{ worker.id }}')">Info</button>
+=======
+          <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">View profile</a>
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
           <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}', '{{ worker.phone|e }}')">Contact</button>
         </div>
       </div>
@@ -114,61 +118,109 @@
 <!-- Contact modal -->
 <div id="bookingModal" class="modal">
   <div class="modal-card">
-    <h3 id="modalTitle">Contact pro</h3>
-    <p class="modal-sub">Reach out directly using the details below.</p>
+    <h3 id="modalTitle">Book a pro</h3>
+    <p class="modal-sub">Send a booking request or call this professional directly.</p>
     <div id="modalContent" class="contact-card"></div>
-    <div class="btn-row">
-      <button type="button" class="btn-ghost" onclick="closeBookingModal()">Close</button>
-    </div>
+    <form action="{{ url_for('create_booking') }}" method="post" class="booking-form">
+      <input type="hidden" id="bookingWorkerId" name="worker_id">
+      <div class="field">
+        <label for="clientName">Your name</label>
+        <input id="clientName" type="text" name="client_name" required>
+      </div>
+      <div class="field">
+        <label for="clientPhone">Your phone</label>
+        <input id="clientPhone" type="tel" name="client_phone" required>
+      </div>
+      <div class="field">
+        <label for="serviceAddress">Service address</label>
+        <textarea id="serviceAddress" name="service_address" rows="2" required></textarea>
+      </div>
+      <div class="field">
+        <label for="bookingDate">Preferred date</label>
+        <input id="bookingDate" type="date" name="booking_date" required>
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn-solid">Send booking request</button>
+        <button type="button" class="btn-ghost" onclick="closeBookingModal()">Close</button>
+      </div>
+    </form>
   </div>
 </div>
 
-<!-- Portfolio modal -->
-<div id="portfolioModal" class="modal">
+<!-- Contractor information and media modal -->
+<div id="workerInfoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="workerInfoTitle">
   <div class="modal-card wide">
-    <h3 id="portfolioTitle">Portfolio</h3>
-    <p class="modal-sub">Past work from this pro.</p>
-    <div class="portfolio-gallery" id="portfolioGallery"></div>
+    <h3 id="workerInfoTitle">Contractor information</h3>
+    <div id="workerInfoDetails" class="worker-info-details"></div>
+    <h4 class="info-gallery-heading">Portfolio</h4>
+    <div id="workerInfoStatus" class="upload-status" role="status"></div>
+    <div class="portfolio-gallery" id="workerInfoGallery"></div>
     <div class="btn-row">
-      <button type="button" class="btn-ghost" onclick="closePortfolio()" style="flex:1;">Close</button>
+      <button type="button" class="btn-ghost" onclick="closeWorkerInfo()" style="flex:1;">Close</button>
     </div>
   </div>
 </div>
 
+<<<<<<< HEAD
+<div id="portfolioLightbox" class="portfolio-lightbox" hidden role="dialog" aria-modal="true" aria-label="Portfolio photo viewer">
+  <div class="portfolio-lightbox-dialog">
+    <button type="button" class="portfolio-lightbox-close" aria-label="Close photo viewer">×</button>
+    <img id="portfolioLightboxImage" class="portfolio-lightbox-media" alt="">
+    <p id="portfolioLightboxCaption" class="portfolio-lightbox-caption"></p>
+  </div>
+</div>
+=======
 <script>
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
 function toggleWorkerInfo(button) {
   const panel = button.closest('.pro-actions').nextElementSibling;
   if (panel && panel.classList.contains('worker-info-panel')) {
     panel.hidden = !panel.hidden;
   }
 }
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 
+<script>
 function openBookingModal(id, name, trade, phone) {
   document.getElementById('modalTitle').innerText = name;
+  document.getElementById('bookingWorkerId').value = id;
   const modalContent = document.getElementById('modalContent');
   const safePhone = phone || 'Phone not provided';
   modalContent.innerHTML = `
     <div class="contact-card-body">
-      <div class="contact-name">${name}</div>
-      <div class="contact-trade">${trade}</div>
-      <div class="contact-phone">${safePhone}</div>
-      <a class="btn-solid call-link" href="tel:${safePhone}">Call now</a>
+      <div class="contact-name">${esc(name)}</div>
+      <div class="contact-trade">${esc(trade)}</div>
+      <div class="contact-phone">${esc(safePhone)}</div>
+      <a class="btn-solid call-link" href="tel:${esc(safePhone)}">Call now</a>
     </div>
   `;
   document.getElementById('bookingModal').style.display = 'flex';
 }
 function closeBookingModal() { document.getElementById('bookingModal').style.display = 'none'; }
 
+<<<<<<< HEAD
+function addText(parent, tagName, text, className) {
+  const element = document.createElement(tagName);
+  element.textContent = text;
+  if (className) element.className = className;
+  parent.appendChild(element);
+  return element;
+=======
 function openPortfolio(workerId, name) {
   document.getElementById('portfolioTitle').innerText = name + "'s Portfolio";
   const gallery = document.getElementById('portfolioGallery');
-  gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">Loading...</p>';
+  gallery.innerHTML = '<p style="color:#64748b;font-size:.875rem;">Loading...</p>';
   document.getElementById('portfolioModal').style.display = 'flex';
   fetch('/api/worker/' + workerId + '/portfolio')
     .then(r => r.json())
     .then(data => {
       if (!data.images.length) {
-        gallery.innerHTML = '<p style="color:#667085;font-size:.85rem;">No portfolio photos yet.</p>';
+        gallery.innerHTML = '<p style="color:#64748b;font-size:.875rem;">No portfolio photos yet.</p>';
         return;
       }
       gallery.innerHTML = data.images.map(img => {
@@ -176,25 +228,125 @@ function openPortfolio(workerId, name) {
           return `
             <div class="portfolio-media-card">
               <video controls playsinline preload="metadata">
-                <source src="${img.url}">
+                <source src="${esc(img.url)}">
               </video>
-              ${img.caption ? `<p class="portfolio-caption">${img.caption}</p>` : ''}
+              ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
             </div>
           `;
         }
         return `
           <div class="portfolio-media-card">
-            <img src="${img.url}" alt="${img.caption || 'Portfolio photo'}">
-            ${img.caption ? `<p class="portfolio-caption">${img.caption}</p>` : ''}
+            <img src="${esc(img.url)}" alt="${esc(img.caption || 'Portfolio photo')}">
+            ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
           </div>
         `;
       }).join('');
     });
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 }
-function closePortfolio() { document.getElementById('portfolioModal').style.display = 'none'; }
 
-[document.getElementById('bookingModal'), document.getElementById('portfolioModal')].forEach(m => {
+async function openWorkerInfo(workerId) {
+  const modal = document.getElementById('workerInfoModal');
+  const details = document.getElementById('workerInfoDetails');
+  const gallery = document.getElementById('workerInfoGallery');
+  const status = document.getElementById('workerInfoStatus');
+  document.getElementById('workerInfoTitle').textContent = 'Contractor information';
+  details.replaceChildren();
+  gallery.replaceChildren();
+  status.textContent = 'Loading contractor information...';
+  modal.style.display = 'flex';
+
+  try {
+    const response = await fetch('/api/worker/' + workerId + '/portfolio');
+    if (!response.ok) throw new Error('Contractor information could not be loaded.');
+    const worker = await response.json();
+    document.getElementById('workerInfoTitle').textContent = worker.name;
+    addText(details, 'span', worker.trade, 'trade-badge');
+    if (worker.location) addText(details, 'p', worker.location, 'profile-meta');
+    if (worker.bio) addText(details, 'p', worker.bio, 'worker-info-bio');
+    if (worker.availability.length) {
+      addText(details, 'p', 'Available for: ' + worker.availability.join(', '), 'worker-info-availability');
+    }
+    if (worker.phone) {
+      const phone = document.createElement('a');
+      phone.className = 'worker-info-phone';
+      phone.href = 'tel:' + worker.phone;
+      phone.textContent = 'Call ' + worker.phone;
+      details.appendChild(phone);
+    }
+
+    if (!worker.images.length) {
+      addText(gallery, 'p', 'No portfolio media has been added yet.', 'profile-empty');
+    }
+
+    worker.images.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'portfolio-media-card';
+      if (item.type === 'video') {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.src = item.url;
+        card.appendChild(video);
+      } else {
+        const imageButton = document.createElement('button');
+        imageButton.type = 'button';
+        imageButton.className = 'portfolio-image-button';
+        imageButton.setAttribute('aria-label', 'Open portfolio photo');
+        const image = document.createElement('img');
+        image.src = item.url;
+        image.alt = item.caption || 'Portfolio photo';
+        imageButton.appendChild(image);
+        imageButton.addEventListener('click', () => openPortfolioLightbox(item.url, item.caption));
+        card.appendChild(imageButton);
+      }
+      if (item.caption) addText(card, 'p', item.caption, 'portfolio-caption');
+      gallery.appendChild(card);
+    });
+    status.textContent = '';
+  } catch (error) {
+    status.textContent = error.message;
+  }
+}
+
+function closeWorkerInfo() {
+  document.getElementById('workerInfoModal').style.display = 'none';
+  document.querySelectorAll('#workerInfoGallery video').forEach(video => video.pause());
+}
+
+function openPortfolioLightbox(url, caption) {
+  const lightbox = document.getElementById('portfolioLightbox');
+  document.getElementById('portfolioLightboxImage').src = url;
+  document.getElementById('portfolioLightboxImage').alt = caption || 'Portfolio photo';
+  document.getElementById('portfolioLightboxCaption').textContent = caption || '';
+  lightbox.hidden = false;
+}
+
+function closePortfolioLightbox() {
+  const lightbox = document.getElementById('portfolioLightbox');
+  lightbox.hidden = true;
+  document.getElementById('portfolioLightboxImage').src = '';
+}
+
+[document.getElementById('bookingModal'), document.getElementById('workerInfoModal')].forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+});
+<<<<<<< HEAD
+
+document.querySelector('.portfolio-lightbox-close').addEventListener('click', closePortfolioLightbox);
+document.getElementById('portfolioLightbox').addEventListener('click', event => {
+  if (event.target.id === 'portfolioLightbox') closePortfolioLightbox();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    if (!document.getElementById('portfolioLightbox').hidden) closePortfolioLightbox();
+    else closeWorkerInfo();
+  }
+=======
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeBookingModal(); closePortfolio(); }
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 });
 </script>
 </body>
