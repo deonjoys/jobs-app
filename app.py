@@ -1,13 +1,11 @@
 import os
 import uuid
 import json
-<<<<<<< HEAD
 import base64
-<<<<<<< Updated upstream
+from datetime import date
 =======
 from datetime import date
-
->>>>>>> Stashed changes
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
 from datetime import date
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
@@ -270,7 +268,6 @@ def client_home():
 
 @app.route('/book', methods=['POST'])
 def create_booking():
-<<<<<<< HEAD
     worker_id = request.form.get('worker_id')
     try:
         worker_id_int = int(worker_id) if worker_id not in (None, '') else None
@@ -283,20 +280,24 @@ def create_booking():
     service_address = (request.form.get('service_address') or '').strip()
     booking_date = (request.form.get('booking_date') or '').strip()
     worker = db.session.get(Worker, worker_id_int) if worker_id_int else None
-=======
     worker_id = request.form.get('worker_id', type=int)
     client_name = request.form.get('client_name', '').strip()
     client_phone = request.form.get('client_phone', '').strip()
     service_address = request.form.get('service_address', '').strip()
     booking_date = request.form.get('booking_date', '').strip()
     worker = db.session.get(Worker, worker_id) if worker_id else None
+<<<<<<< HEAD
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+=======
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     try:
         date.fromisoformat(booking_date)
     except ValueError:
         booking_date = ''
-<<<<<<< HEAD
-
+    try:
+        date.fromisoformat(booking_date)
+    except ValueError:
+        booking_date = ''
 =======
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     if not worker or not client_name or not client_phone or not service_address or not booking_date:
@@ -304,31 +305,9 @@ def create_booking():
         return redirect(url_for('client_home'))
 
     new_booking = Booking(
-<<<<<<< Updated upstream
-        worker_id=worker_id_int,
-=======
-    worker_id = request.form.get('worker_id', type=int)
-    client_name = request.form.get('client_name', '').strip()
-    client_phone = request.form.get('client_phone', '').strip()
-    service_address = request.form.get('service_address', '').strip()
-    booking_date = request.form.get('booking_date', '').strip()
-    worker = db.session.get(Worker, worker_id) if worker_id else None
-    try:
-        date.fromisoformat(booking_date)
-    except ValueError:
-        booking_date = ''
-    if not worker or not client_name or not client_phone or not service_address or not booking_date:
-        flash('Please complete all booking details and choose a valid worker.', 'error')
-        return redirect(url_for('client_home'))
-
-    new_booking = Booking(
-        worker_id=worker.id,
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
         worker_id=worker.id,
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
         client_name=client_name,
         client_phone=client_phone,
@@ -343,19 +322,15 @@ def create_booking():
 
 @app.route('/worker/<int:worker_id>')
 def worker_profile(worker_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    worker = db.session.get(Worker, worker_id)
-    if worker is None:
-        abort(404)
-=======
-    worker = db.get_or_404(Worker, worker_id)
-=======
-    worker = db.get_or_404(Worker, worker_id)
-<<<<<<< HEAD
+    if not worker or not client_name or not client_phone or not service_address or not booking_date:
+        flash('Please complete all booking details and choose a valid worker.', 'error')
+        return redirect(url_for('client_home'))
 
+    new_booking = Booking(
+        worker_id=worker.id,
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
->>>>>>> Stashed changes
+    worker = db.get_or_404(Worker, worker_id)
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     return render_template('worker_profile.html', worker=worker)
 
@@ -422,60 +397,33 @@ def admin_dashboard():
 @app.route('/admin/workers/new', methods=['GET', 'POST'])
 def add_worker():
     if request.method == 'POST':
-<<<<<<< HEAD
-        try:
-            portfolio_media = [
-                media for media in
-                (build_portfolio_media(f) for f in request.files.getlist('portfolio_images'))
-                if media
-            ]
-        except ValueError as error:
-            flash(str(error), 'error')
-            return redirect(url_for('add_worker'))
-
-        try:
-            experience_years = parse_required_int(request.form.get('experience_years'), 'Experience years')
-        except ValueError as error:
-            flash(str(error), 'error')
-            return redirect(url_for('add_worker'))
-
-        name = (request.form.get('name') or '').strip()
-        trade = (request.form.get('trade') or '').strip()
-        phone = (request.form.get('phone') or '').strip()
-<<<<<<< Updated upstream
-        if not name or not trade or not phone:
-            flash('Name, trade, and phone are required.', 'error')
-            return redirect(url_for('add_worker'))
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
 =======
-        status = request.form.get('status', 'Available')
->>>>>>> Stashed changes
 =======
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
         experience_years = request.form.get('experience_years', type=int)
         name = request.form.get('name', '').strip()
         trade = request.form.get('trade', '').strip()
         phone = request.form.get('phone', '').strip()
-<<<<<<< Updated upstream
+        status = request.form.get('status', 'Available')
+        if not name or not trade or not phone:
+            flash('Name, trade, and phone are required.', 'error')
+            return redirect(url_for('add_worker'))
+>>>>>>> Stashed changes
 =======
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
         if (
             not name
             or trade not in TRADES
             or not phone
-<<<<<<< Updated upstream
-            or experience_years is None
-            or experience_years < 0
-            or request.form.get('status', 'Available') not in {'Available', 'Booked'}
-=======
-<<<<<<< HEAD
-            or experience_years < 0
-            or status not in {'Available', 'Booked'}
+>>>>>>> Stashed changes
 =======
             or experience_years is None
             or experience_years < 0
             or request.form.get('status', 'Available') not in {'Available', 'Booked'}
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
         ):
             flash('Enter a valid name, trade, phone number, and experience value.', 'error')
             return render_template(
@@ -484,14 +432,17 @@ def add_worker():
                 trades=TRADES,
                 selected_availability=request.form.getlist('availability'),
             ), 400
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
 >>>>>>> Stashed changes
 
-<<<<<<< HEAD
-
+            or experience_years is None
+            or experience_years < 0
+            or status not in {'Available', 'Booked'}
 =======
+
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
         photo_filename = save_upload(request.files.get('photo'), WORKER_PHOTO_DIR)
 
@@ -499,15 +450,12 @@ def add_worker():
             name=name,
             trade=trade,
             phone=phone,
-<<<<<<< HEAD
-            location=(request.form.get('location') or '').strip() or None,
+=======
+            location=request.form.get('location', '').strip(),
             hourly_rate=0,
             experience_years=experience_years,
-            bio=(request.form.get('bio') or '').strip() or None,
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
+            bio=request.form.get('bio', '').strip(),
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
             location=request.form.get('location', '').strip(),
             hourly_rate=0,
@@ -533,74 +481,41 @@ def add_worker():
 
 @app.route('/admin/workers/<int:worker_id>/edit', methods=['GET', 'POST'])
 def edit_worker(worker_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    worker = db.session.get(Worker, worker_id)
-    if worker is None:
-        abort(404)
-=======
-    worker = db.get_or_404(Worker, worker_id)
->>>>>>> Stashed changes
 
     if request.method == 'POST':
-<<<<<<< HEAD
-        try:
-            portfolio_media = [
-                media for media in
-                (build_portfolio_media(f) for f in request.files.getlist('portfolio_images'))
-                if media
-            ]
-        except ValueError as error:
-            flash(str(error), 'error')
-            return redirect(url_for('edit_worker', worker_id=worker.id))
-
-        try:
-            experience_years = parse_required_int(request.form.get('experience_years'), 'Experience years')
-        except ValueError as error:
-            flash(str(error), 'error')
-            return redirect(url_for('edit_worker', worker_id=worker.id))
-
-        name = (request.form.get('name') or '').strip()
-        trade = (request.form.get('trade') or '').strip()
-        phone = (request.form.get('phone') or '').strip()
-<<<<<<< Updated upstream
-        if not name or not trade or not phone:
-            flash('Name, trade, and phone are required.', 'error')
-            return redirect(url_for('edit_worker', worker_id=worker.id))
+            location=(request.form.get('location') or '').strip() or None,
+            hourly_rate=0,
+            experience_years=experience_years,
+            bio=(request.form.get('bio') or '').strip() or None,
 =======
     worker = db.get_or_404(Worker, worker_id)
 
     if request.method == 'POST':
-=======
-        status = request.form.get('status', 'Available')
-=======
->>>>>>> Stashed changes
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
         experience_years = request.form.get('experience_years', type=int)
         name = request.form.get('name', '').strip()
         trade = request.form.get('trade', '').strip()
         phone = request.form.get('phone', '').strip()
-<<<<<<< Updated upstream
+    worker = db.session.get(Worker, worker_id)
+    if worker is None:
+        abort(404)
+>>>>>>> Stashed changes
 =======
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
         if (
             not name
             or trade not in TRADES
             or not phone
-<<<<<<< Updated upstream
-            or experience_years is None
-            or experience_years < 0
-            or request.form.get('status', 'Available') not in {'Available', 'Booked'}
-=======
-<<<<<<< HEAD
-            or experience_years < 0
-            or status not in {'Available', 'Booked'}
+        status = request.form.get('status', 'Available')
+        if not name or not trade or not phone:
+            flash('Name, trade, and phone are required.', 'error')
+            return redirect(url_for('edit_worker', worker_id=worker.id))
+>>>>>>> Stashed changes
 =======
             or experience_years is None
             or experience_years < 0
             or request.form.get('status', 'Available') not in {'Available', 'Booked'}
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
         ):
             flash('Enter a valid name, trade, phone number, and experience value.', 'error')
             return render_template(
@@ -609,29 +524,24 @@ def edit_worker(worker_id):
                 trades=TRADES,
                 selected_availability=request.form.getlist('availability'),
             ), 400
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
 
 <<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 
         worker.name = name
         worker.trade = trade
         worker.phone = phone
-<<<<<<< HEAD
-        worker.location = (request.form.get('location') or '').strip() or None
+        worker.location = request.form.get('location', '').strip()
         worker.experience_years = experience_years
-        worker.bio = (request.form.get('bio') or '').strip() or None
-<<<<<<< Updated upstream
+        worker.bio = request.form.get('bio', '').strip()
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
-=======
-
-=======
-        worker.name = name
-        worker.trade = trade
-        worker.phone = phone
->>>>>>> Stashed changes
         worker.location = request.form.get('location', '').strip()
         worker.experience_years = experience_years
         worker.bio = request.form.get('bio', '').strip()
@@ -660,19 +570,12 @@ def edit_worker(worker_id):
 
 @app.route('/admin/workers/<int:worker_id>/delete', methods=['POST'])
 def delete_worker(worker_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    worker = db.session.get(Worker, worker_id)
-    if worker is None:
-        abort(404)
+            or experience_years is None
+            or experience_years < 0
+            or status not in {'Available', 'Booked'}
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
     worker = db.get_or_404(Worker, worker_id)
-=======
-    worker = db.get_or_404(Worker, worker_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
     for img in worker.portfolio_images:
@@ -687,19 +590,9 @@ def delete_worker(worker_id):
 
 @app.route('/admin/portfolio/<int:image_id>/delete', methods=['POST'])
 def delete_portfolio_image(image_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    image = db.session.get(PortfolioImage, image_id)
-    if image is None:
-        abort(404)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
     image = db.get_or_404(PortfolioImage, image_id)
-=======
-    image = db.get_or_404(PortfolioImage, image_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     worker_id = image.worker_id
     if not image.data_url:
@@ -712,19 +605,12 @@ def delete_portfolio_image(image_id):
 
 @app.route('/admin/portfolio/<int:image_id>/edit', methods=['POST'])
 def edit_portfolio_image(image_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    image = db.session.get(PortfolioImage, image_id)
-    if image is None:
-        abort(404)
+        worker.location = (request.form.get('location') or '').strip() or None
+        worker.experience_years = experience_years
+        worker.bio = (request.form.get('bio') or '').strip() or None
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
     image = db.get_or_404(PortfolioImage, image_id)
-=======
-    image = db.get_or_404(PortfolioImage, image_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     worker_id = image.worker_id
     caption = request.form.get('caption', '').strip()
@@ -736,19 +622,12 @@ def edit_portfolio_image(image_id):
 
 @app.route('/admin/workers/<int:worker_id>/upload', methods=['POST'])
 def upload_portfolio_items(worker_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
     worker = db.session.get(Worker, worker_id)
     if worker is None:
         abort(404)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
     worker = db.get_or_404(Worker, worker_id)
-=======
-    worker = db.get_or_404(Worker, worker_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     files = request.files.getlist('files')
     try:
@@ -775,19 +654,12 @@ def upload_portfolio_items(worker_id):
 
 @app.route('/admin/booking/<int:booking_id>/confirm', methods=['POST'])
 def confirm_booking(booking_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    booking = db.session.get(Booking, booking_id)
-    if booking is None:
+    worker = db.session.get(PortfolioImage, image_id)
+    if worker is None:
         abort(404)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
     booking = db.get_or_404(Booking, booking_id)
-=======
-    booking = db.get_or_404(Booking, booking_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     booking.status = 'Confirmed'
     db.session.commit()
@@ -798,19 +670,12 @@ def confirm_booking(booking_id):
 # ---------- JSON API (used by the client-side portfolio modal) ----------
 @app.route('/api/worker/<int:worker_id>/portfolio')
 def worker_portfolio_json(worker_id):
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-    worker = db.session.get(Worker, worker_id)
-    if worker is None:
+    image = db.session.get(PortfolioImage, image_id)
+    if image is None:
         abort(404)
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
     worker = db.get_or_404(Worker, worker_id)
-=======
-    worker = db.get_or_404(Worker, worker_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     return jsonify({
         'name': worker.name,

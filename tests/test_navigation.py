@@ -8,10 +8,6 @@ from sqlalchemy import create_engine
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import app, db, Booking, Worker, PortfolioImage
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
->>>>>>> Stashed changes
 
 
 @pytest.fixture(autouse=True)
@@ -33,6 +29,8 @@ def isolated_database(tmp_path):
             db.drop_all()
             db.engines[None] = original_engine
         test_engine.dispose()
+=======
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 
@@ -96,21 +94,21 @@ def test_worker_profile_page_has_portfolio_lightbox_support():
         assert response.status_code == 200
         html = response.get_data(as_text=True)
         assert 'portfolio-lightbox' in html
-<<<<<<< HEAD
         assert 'Open media' in html
         assert 'View' in html
 
 
 def test_admin_can_upload_multiple_data_url_media_for_info_modal():
-<<<<<<< Updated upstream
 =======
-
->>>>>>> Stashed changes
 =======
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
         assert 'View' in html
 
 
 def test_home_page_has_booking_form_for_each_worker():
+<<<<<<< HEAD
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+=======
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -119,24 +117,6 @@ def test_home_page_has_booking_form_for_each_worker():
         with app.app_context():
             db.drop_all()
             db.create_all()
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-            worker = Worker(
-                name='Alex Builder',
-                trade='Mason',
-                phone='+233200000001',
-                location='Accra',
-                experience_years=8,
-                bio='Stone and brick work.',
-=======
-            db.session.add(
-                Worker(
-                    name='John Doe',
-                    trade='Mason',
-                    phone='0200000000',
-                    experience_years=3,
-                )
->>>>>>> Stashed changes
             )
             db.session.commit()
 
@@ -183,9 +163,67 @@ def test_invalid_worker_form_returns_validation_error_instead_of_500():
             },
         )
         assert response.status_code == 400
-<<<<<<< HEAD
+            worker = Worker(
+                name='Alex Builder',
+                trade='Mason',
+                phone='+233200000001',
+                location='Accra',
+                experience_years=8,
+                bio='Stone and brick work.',
+            )
+            db.session.add(
+                Worker(
+                    name='John Doe',
+                    trade='Mason',
+                    phone='0200000000',
+                    experience_years=3,
+                )
+            )
+            db.session.commit()
+
+        response = client.get('/')
+        html = response.get_data(as_text=True)
+        assert response.status_code == 200
+        assert 'Send booking request' in html
+        assert 'name="worker_id"' in html
 
 
+def test_invalid_booking_does_not_create_record():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    with app.test_client() as client:
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
+        response = client.post('/book', data={'worker_id': 'not-a-number'})
+        assert response.status_code == 302
+        with app.app_context():
+            assert db.session.query(Booking).count() == 0
+
+
+def test_invalid_worker_form_returns_validation_error_instead_of_500():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    with app.test_client() as client:
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
+        with client.session_transaction() as session:
+            session['is_admin'] = True
+        response = client.post(
+            '/admin/workers/new',
+            data={
+                'name': 'Invalid Worker',
+                'trade': 'Plumber',
+                'phone': '0200000000',
+                'experience_years': 'not-a-number',
+            },
+        )
+        assert response.status_code == 400
 def test_admin_can_upload_multiple_data_url_media_for_info_modal():
     app.config['TESTING'] = True
 
@@ -240,63 +278,6 @@ def test_new_worker_form_stores_multiple_portfolio_data_urls():
             worker = Worker.query.filter_by(name='Taylor Painter').one()
             assert len(worker.portfolio_images) == 2
             assert all(item.data_url.startswith('data:image/') for item in worker.portfolio_images)
-<<<<<<< Updated upstream
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 =======
-            db.session.add(
-                Worker(
-                    name='John Doe',
-                    trade='Mason',
-                    phone='0200000000',
-                    experience_years=3,
-                )
-            )
-            db.session.commit()
-
-        response = client.get('/')
-        html = response.get_data(as_text=True)
-        assert response.status_code == 200
-        assert 'Send booking request' in html
-        assert 'name="worker_id"' in html
-
-
-def test_invalid_booking_does_not_create_record():
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-
-    with app.test_client() as client:
-        with app.app_context():
-            db.drop_all()
-            db.create_all()
-
-        response = client.post('/book', data={'worker_id': 'not-a-number'})
-        assert response.status_code == 302
-        with app.app_context():
-            assert db.session.query(Booking).count() == 0
-
-
-def test_invalid_worker_form_returns_validation_error_instead_of_500():
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-
-    with app.test_client() as client:
-        with app.app_context():
-            db.drop_all()
-            db.create_all()
-
-        with client.session_transaction() as session:
-            session['is_admin'] = True
-        response = client.post(
-            '/admin/workers/new',
-            data={
-                'name': 'Invalid Worker',
-                'trade': 'Plumber',
-                'phone': '0200000000',
-                'experience_years': 'not-a-number',
-            },
-        )
-        assert response.status_code == 400
-=======
-
-=======
->>>>>>> Stashed changes
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93

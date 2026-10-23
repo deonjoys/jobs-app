@@ -300,87 +300,27 @@ header.site-head {
   padding: 0.6rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.875rem;
   text-decoration: none; cursor: pointer; transition: all .15s ease;
 }
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
 .btn-info {
->>>>>>> Stashed changes
 .btn-info {
-<<<<<<< HEAD
-  background: var(--teal); color: #fff; border: none; padding: 0.55rem 1.1rem;
-  border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
-}
-.btn-info:hover { background: var(--teal-dark); }
-
-.btn-book {
-  background: var(--coral); color: #fff; border: none; padding: 0.55rem 1.1rem;
-  border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
-}
-.btn-book:hover { background: var(--coral-dark); }
-
-.contact-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.contact-card-body {
-  padding: 1rem;
-  border-radius: 12px;
-  background: #f8fbfe;
-  border: 1px solid var(--rule);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.contact-name {
-  font-family: 'Sora', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.contact-trade {
-  color: var(--teal-dark);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.contact-phone {
-  color: var(--steel);
-  font-weight: 600;
-}
-
-.call-link {
-  display: inline-block;
-  text-align: center;
-  text-decoration: none;
-  margin-top: 0.3rem;
-}
-
-.btn-view {
-  background: transparent; color: var(--ink); border: 1.5px solid var(--rule);
-  padding: 0.5rem 0.8rem; border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer;
-}
-.btn-view:hover { border-color: var(--ink); }
-=======
-<<<<<<< Updated upstream
-=======
 .btn-info {
->>>>>>> Stashed changes
   background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
 }
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
+}
+=======
+.btn-info {
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
+}
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 .btn-info:hover { background: var(--bg); }
 .btn-book { background: var(--primary); color: #fff; border: 1px solid var(--primary); }
 .btn-book:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
 .btn-view { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
 .btn-view:hover { background: var(--bg); }
+<<<<<<< HEAD
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
-<<<<<<< Updated upstream
 =======
-
->>>>>>> Stashed changes
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 
 .empty-state {
   grid-column: 1 / -1; text-align: center; padding: 3.5rem 1rem; color: var(--muted);
@@ -427,14 +367,7 @@ header.site-head {
 }
 .portfolio-media-card img,
 .portfolio-media-card video {
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-  width: 100%; height: 160px; border-radius: 8px; object-fit: cover;
-=======
-.portfolio-media-card img,
-.portfolio-media-card video {
   width: 100%; height: 160px; border-radius: 8px; object-fit: cover; background: #000;
->>>>>>> Stashed changes
 }
 .portfolio-image-button {
   display: block;
@@ -486,21 +419,20 @@ header.site-head {
   width: 100%; height: 150px; border-radius: 8px; object-fit: cover; background: #000;
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 }
-<<<<<<< Updated upstream
+  width: 100%; height: 150px; border-radius: 8px; object-fit: cover; background: #000;
+}
+.portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
+
+=======
+.portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
+
+>>>>>>> Stashed changes
 =======
   width: 100%; height: 150px; border-radius: 8px; object-fit: cover; background: #000;
 }
 .portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
+
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
-
-=======
-.portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
 /* ---------- Profile page ---------- */
 .profile-page { padding: 2rem 0 3rem; }
 
@@ -685,45 +617,8 @@ table.ledger td.empty { text-align: center; color: var(--muted); padding: 2.5rem
 .pill.confirmed, .pill.available { background: var(--good-soft); color: var(--good); }
 .pill.booked { background: var(--danger-soft); color: var(--danger); }
 
-<<<<<<< HEAD
 .thumb-manager { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 1rem; }
-.thumb-item { position: relative; width: 120px; }
-.media-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 0.6rem;
-  margin-top: 0.65rem;
-}
-.media-preview-card {
-  min-width: 0;
-  padding: 0.45rem;
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  background: #fff;
-}
-.media-preview-card img,
-.media-preview-card video {
-  display: block;
-  width: 100%;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 6px;
-  background: #101b27;
-}
-.media-preview-card span {
-  display: block;
-  margin-top: 0.35rem;
-  overflow: hidden;
-  font-size: 0.72rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-<<<<<<< Updated upstream
-.thumb-item { position: relative; width: 90px; height: 90px; }
-=======
-.thumb-manager { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem; }
-.thumb-item { position: relative; width: 120px; }
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+.thumb-item { position: relative; width: 120px; height: 90px; }
 .thumb-item img,
 .thumb-video {
   width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
@@ -743,6 +638,13 @@ table.ledger td.empty { text-align: center; color: var(--muted); padding: 2.5rem
   width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 >>>>>>> Stashed changes
+=======
+.thumb-manager { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem; }
+.thumb-item { position: relative; width: 120px; }
+.thumb-item img,
+.thumb-video {
+  width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 }
 .thumb-video { background: #000; }
 .video-thumb {
