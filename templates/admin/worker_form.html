@@ -122,8 +122,11 @@
             </form>
           </div>
           {% endfor %}
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> Stashed changes
         </div>
       </div>
       {% endif %}
@@ -135,7 +138,14 @@
           <input type="file" name="portfolio_images" accept="image/*,video/*" multiple style="display:none;">
           {% if worker %}
           <div id="portfolio-drop-zone" class="drop-zone">Drop files here or click Add item</div>
+<<<<<<< Updated upstream
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+=======
+          {% endif %}
+        </div>
+        <div class="portfolio-manager-actions">
+
+>>>>>>> Stashed changes
           {% endif %}
         </div>
         <div class="portfolio-manager-actions">
@@ -239,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
     {% endif %}
   }
 
+<<<<<<< Updated upstream
   photoPicker.addEventListener('change', event => {
     handleFiles(event.target.files);
     event.target.value = '';
@@ -247,6 +258,34 @@ document.addEventListener('DOMContentLoaded', function () {
     handleFiles(event.target.files);
     event.target.value = '';
   });
+=======
+  const url = '{{ url_for("upload_portfolio_items", worker_id=worker.id) }}';
+  const form = new FormData();
+  for(const f of files) form.append('files', f);
+  fetch(url, { method: 'POST', body: form, credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(data => {
+      if(data.items && data.items.length){
+        data.items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'thumb-item';
+          let inner = '';
+          if(item.type === 'video'){
+            inner += `<video controls src="${item.url}" class="thumb-video"></video>`;
+          } else {
+            inner += `<img src="${item.url}" alt="Portfolio item">`;
+          }
+          inner += `\n<form action="/admin/portfolio/${item.id}/delete" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">`;
+          inner += `<button type="submit" class="thumb-remove" title="Remove">×</button></form>`;
+          inner += `<form action="/admin/portfolio/${item.id}/edit" method="POST" style="margin-top:0.45rem; display:block;">`;
+          inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
+          inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button></div></form>`;
+          div.innerHTML = inner;
+          if(thumbManager) thumbManager.appendChild(div);
+        });
+      }
+    }).catch(err => console.error(err));
+>>>>>>> Stashed changes
 =======
     const url = '{{ url_for("upload_portfolio_items", worker_id=worker.id) }}';
     const form = new FormData();
@@ -274,6 +313,10 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         }
       }).catch(err => console.error(err));
+<<<<<<< Updated upstream
+=======
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+>>>>>>> Stashed changes
     {% endif %}
   }
 
@@ -288,7 +331,11 @@ document.addEventListener('DOMContentLoaded', function () {
     dropZone.addEventListener('dragleave', function(e){ dropZone.classList.remove('drop-zone-active'); });
     dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('drop-zone-active'); const files = e.dataTransfer.files; uploadFiles(files); });
   }
+<<<<<<< Updated upstream
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+=======
+
+>>>>>>> Stashed changes
 });
 </script>
 

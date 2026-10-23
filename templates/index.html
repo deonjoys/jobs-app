@@ -97,6 +97,11 @@
         <div class="pro-actions">
 <<<<<<< HEAD
           <button type="button" class="btn-info" onclick="openWorkerInfo('{{ worker.id }}')">Info</button>
+<<<<<<< Updated upstream
+=======
+          <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">View profile</a>
+
+>>>>>>> Stashed changes
 =======
           <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">View profile</a>
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
@@ -144,6 +149,10 @@
         <button type="button" class="btn-ghost" onclick="closeBookingModal()">Close</button>
       </div>
     </form>
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+>>>>>>> Stashed changes
   </div>
 </div>
 
@@ -158,6 +167,8 @@
     <div class="btn-row">
       <button type="button" class="btn-ghost" onclick="closeWorkerInfo()" style="flex:1;">Close</button>
     </div>
+=======
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
   </div>
 </div>
 
@@ -184,6 +195,25 @@ function toggleWorkerInfo(button) {
   }
 }
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+
+<script>
+function esc(s) {
+<<<<<<< HEAD
+  return String(s == null ? '' : s).replace(/[&<>\"']/g, function (c) {
+=======
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function toggleWorkerInfo(button) {
+  const panel = button.closest('.pro-actions').nextElementSibling;
+  if (panel && panel.classList.contains('worker-info-panel')) {
+    panel.hidden = !panel.hidden;
+  }
+}
+
 
 <script>
 function openBookingModal(id, name, trade, phone) {
@@ -243,6 +273,43 @@ function openPortfolio(workerId, name) {
       }).join('');
     });
 >>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+}
+
+function openPortfolio(workerId, name) {
+  document.getElementById('portfolioTitle').innerText = name + "'s Portfolio";
+  const gallery = document.getElementById('portfolioGallery');
+  gallery.innerHTML = '<p style="color:#64748b;font-size:.875rem;">Loading...</p>';
+  document.getElementById('portfolioModal').style.display = 'flex';
+  fetch('/api/worker/' + workerId + '/portfolio')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.images.length) {
+        gallery.innerHTML = '<p style="color:#64748b;font-size:.875rem;">No portfolio photos yet.</p>';
+        return;
+      }
+      gallery.innerHTML = data.images.map(img => {
+        if (img.type === 'video') {
+          return `
+            <div class="portfolio-media-card">
+              <video controls playsinline preload="metadata">
+                <source src="${esc(img.url)}">
+              </video>
+              ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
+            </div>
+          `;
+        }
+        return `
+          <div class="portfolio-media-card">
+            <img src="${esc(img.url)}" alt="${esc(img.caption || 'Portfolio photo')}">
+            ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    });
+}
+
+async function openWorkerInfo(workerId) {
+
 }
 
 async function openWorkerInfo(workerId) {
@@ -333,16 +400,25 @@ function closePortfolioLightbox() {
   m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
 });
 <<<<<<< HEAD
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 document.querySelector('.portfolio-lightbox-close').addEventListener('click', closePortfolioLightbox);
 document.getElementById('portfolioLightbox').addEventListener('click', event => {
   if (event.target.id === 'portfolioLightbox') closePortfolioLightbox();
 });
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
     if (!document.getElementById('portfolioLightbox').hidden) closePortfolioLightbox();
-    else closeWorkerInfo();
+    else { closeBookingModal(); closePortfolio(); closeWorkerInfo(); }
   }
+=======
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeBookingModal(); closePortfolio(); }
+>>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
+});
+
 =======
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeBookingModal(); closePortfolio(); }
