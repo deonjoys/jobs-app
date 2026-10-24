@@ -233,8 +233,8 @@ header.site-head {
 }
 .pro-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--line-strong); }
 
-.pro-photo-wrap { position: relative; height: 190px; background: #e2e8f0; }
-.pro-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pro-photo-wrap { position: relative; aspect-ratio: 4 / 3; background: #e2e8f0; }
+.pro-photo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .pro-avatar-fallback {
   width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, #dbe6fd, #c3d4fb);
