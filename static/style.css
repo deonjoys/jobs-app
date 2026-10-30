@@ -301,26 +301,13 @@ header.site-head {
   text-decoration: none; cursor: pointer; transition: all .15s ease;
 }
 .btn-info {
-.btn-info {
-.btn-info {
   background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
 }
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
-}
-=======
-.btn-info {
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
-}
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 .btn-info:hover { background: var(--bg); }
 .btn-book { background: var(--primary); color: #fff; border: 1px solid var(--primary); }
 .btn-book:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
 .btn-view { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
 .btn-view:hover { background: var(--bg); }
-<<<<<<< HEAD
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
-=======
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 
 .empty-state {
   grid-column: 1 / -1; text-align: center; padding: 3.5rem 1rem; color: var(--muted);
@@ -367,72 +354,10 @@ header.site-head {
 }
 .portfolio-media-card img,
 .portfolio-media-card video {
-  width: 100%; height: 160px; border-radius: 8px; object-fit: cover; background: #000;
-}
-.portfolio-image-button {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: zoom-in;
-}
-.portfolio-image-button:focus-visible {
-  outline: 3px solid var(--teal);
-  outline-offset: 2px;
-}
-.portfolio-caption {
-  font-size: 0.78rem;
-  color: var(--steel);
-  line-height: 1.45;
-  padding: 0 0.2rem 0.2rem;
-}
-.worker-info-details {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
-  margin-bottom: 1.1rem;
-}
-.worker-info-details .profile-meta,
-.worker-info-bio,
-.worker-info-availability {
-  margin: 0;
-  color: var(--steel);
-}
-.worker-info-phone {
-  color: var(--teal-dark);
-  font-weight: 700;
-  text-decoration: none;
-}
-.worker-info-phone:hover { text-decoration: underline; }
-.info-gallery-heading {
-  margin: 0 0 0.6rem;
-  font-family: 'Sora', sans-serif;
-}
-.upload-status {
-  min-height: 1.2rem;
-  color: var(--steel);
-  font-size: 0.82rem;
-  margin: 0.35rem 0;
-=======
-  width: 100%; height: 150px; border-radius: 8px; object-fit: cover; background: #000;
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
-}
   width: 100%; height: 150px; border-radius: 8px; object-fit: cover; background: #000;
 }
 .portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
 
-=======
-.portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
-
->>>>>>> Stashed changes
-=======
-  width: 100%; height: 150px; border-radius: 8px; object-fit: cover; background: #000;
-}
-.portfolio-caption { font-size: 0.78rem; color: var(--muted); line-height: 1.45; padding: 0 0.2rem 0.2rem; }
-
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 /* ---------- Profile page ---------- */
 .profile-page { padding: 2rem 0 3rem; }
 
@@ -617,34 +542,11 @@ table.ledger td.empty { text-align: center; color: var(--muted); padding: 2.5rem
 .pill.confirmed, .pill.available { background: var(--good-soft); color: var(--good); }
 .pill.booked { background: var(--danger-soft); color: var(--danger); }
 
-.thumb-manager { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 1rem; }
-.thumb-item { position: relative; width: 120px; height: 90px; }
-.thumb-item img,
-.thumb-video {
-  width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
-=======
-.thumb-item img,
-.thumb-video {
-  width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
-
-.thumb-item img,
-.thumb-video {
-  width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
-=======
 .thumb-manager { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem; }
 .thumb-item { position: relative; width: 120px; }
 .thumb-item img,
 .thumb-video {
   width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
-=======
-.thumb-manager { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem; }
-.thumb-item { position: relative; width: 120px; }
-.thumb-item img,
-.thumb-video {
-  width: 100%; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block;
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
 }
 .thumb-video { background: #000; }
 .video-thumb {

@@ -100,10 +100,10 @@
         <small>{{ 'Upload a new photo to replace the current one.' if worker else 'JPG, PNG or WEBP.' }}</small>
       </div>
 
+      {% if worker and worker.portfolio_images %}
       <div class="field">
-        <label>Portfolio media manager</label>
-        <div class="thumb-manager" id="portfolio-manager">
-          {% if worker %}
+        <label>Current portfolio items</label>
+        <div class="thumb-manager">
           {% for img in worker.portfolio_images %}
           <div class="thumb-item">
             {% if img.file_type == 'video' %}
@@ -122,11 +122,6 @@
             </form>
           </div>
           {% endfor %}
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-=======
-=======
->>>>>>> Stashed changes
         </div>
       </div>
       {% endif %}
@@ -138,26 +133,9 @@
           <input type="file" name="portfolio_images" accept="image/*,video/*" multiple style="display:none;">
           {% if worker %}
           <div id="portfolio-drop-zone" class="drop-zone">Drop files here or click Add item</div>
-<<<<<<< Updated upstream
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
-=======
           {% endif %}
         </div>
-        <div class="portfolio-manager-actions">
-
->>>>>>> Stashed changes
-          {% endif %}
-        </div>
-        <div class="portfolio-manager-actions">
-          <button id="add-photos-btn" type="button" class="btn-ghost">+ Add Photos</button>
-          <button id="add-videos-btn" type="button" class="btn-ghost">+ Add Videos</button>
-          <input id="portfolio-photo-picker" type="file" accept="image/*" multiple hidden>
-          <input id="portfolio-video-picker" type="file" accept="video/*" multiple hidden>
-          <input id="portfolio-files" type="file" name="portfolio_images" accept="image/*,video/*" multiple hidden>
-        </div>
-        <div id="portfolio-upload-preview" class="media-preview-grid" aria-live="polite"></div>
-        <div id="portfolio-upload-status" class="upload-status" role="status"></div>
-        <small>Select multiple photos or videos from your device. New worker media is saved with the worker; for existing workers, selected files upload and save immediately.</small>
+        <small>Select multiple images or short videos of past work — clients see these before booking. Use the Add button or drop files into the zone (on edit only).</small>
       </div>
 
       <div class="btn-row">
@@ -170,123 +148,23 @@
 
 <footer class="site-foot">JobS Admin — internal use only.</footer>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const photoPicker = document.getElementById('portfolio-photo-picker');
-  const videoPicker = document.getElementById('portfolio-video-picker');
-  const formFiles = document.getElementById('portfolio-files');
-  const preview = document.getElementById('portfolio-upload-preview');
-  const status = document.getElementById('portfolio-upload-status');
-  const pendingFiles = [];
+  <script>
+document.addEventListener('DOMContentLoaded', function(){
+  const addBtn = document.getElementById('add-portfolio-btn');
+  const fileInput = document.querySelector('input[name="portfolio_images"]');
+  const dropZone = document.getElementById('portfolio-drop-zone');
+  const thumbManager = document.querySelector('.thumb-manager');
 
-  document.getElementById('add-photos-btn').addEventListener('click', () => photoPicker.click());
-  document.getElementById('add-videos-btn').addEventListener('click', () => videoPicker.click());
-
-  function showPreview(file, dataUrl) {
-    const card = document.createElement('div');
-    card.className = 'media-preview-card';
-    const media = file.type.startsWith('video/') ? document.createElement('video') : document.createElement('img');
-    media.src = dataUrl;
-    if (media.tagName === 'VIDEO') {
-      media.controls = true;
-      media.muted = true;
-    } else {
-      media.alt = file.name;
-    }
-    const name = document.createElement('span');
-    name.textContent = file.name;
-    card.append(media, name);
-    preview.appendChild(card);
-  }
-
-  function readFile(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error(`Could not preview ${file.name}.`));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function handleFiles(fileList) {
-    const files = Array.from(fileList);
-    if (!files.length) return;
-    status.textContent = 'Preparing preview...';
-    try {
-      for (const file of files) {
-        const dataUrl = await readFile(file);
-        showPreview(file, dataUrl);
-      }
-    } catch (error) {
-      status.textContent = error.message;
-      return;
-    }
-
-    {% if worker %}
-    status.textContent = 'Saving portfolio media...';
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
-    try {
-      const response = await fetch('{{ url_for("upload_portfolio_items", worker_id=worker.id) }}', {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin'
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Portfolio media could not be saved.');
-      status.textContent = `${result.items.length} item(s) saved.`;
-      window.location.reload();
-    } catch (error) {
-      status.textContent = error.message;
-    }
+  function uploadFiles(files){
+    if(!files || files.length === 0) return;
+    // If this is the add form (no worker yet), just attach files to the regular form file input
+    {% if not worker %}
+    // For new worker, populate the hidden input so files are sent on form submit
+    const dataTransfer = new DataTransfer();
+    for(const f of files) dataTransfer.items.add(f);
+    if(fileInput) fileInput.files = dataTransfer.files;
+    return;
     {% else %}
-<<<<<<< HEAD
-    files.forEach(file => pendingFiles.push(file));
-    const transfer = new DataTransfer();
-    pendingFiles.forEach(file => transfer.items.add(file));
-    formFiles.files = transfer.files;
-    status.textContent = `${pendingFiles.length} item(s) ready to save with this worker.`;
-    {% endif %}
-  }
-
-<<<<<<< Updated upstream
-  photoPicker.addEventListener('change', event => {
-    handleFiles(event.target.files);
-    event.target.value = '';
-  });
-  videoPicker.addEventListener('change', event => {
-    handleFiles(event.target.files);
-    event.target.value = '';
-  });
-=======
-  const url = '{{ url_for("upload_portfolio_items", worker_id=worker.id) }}';
-  const form = new FormData();
-  for(const f of files) form.append('files', f);
-  fetch(url, { method: 'POST', body: form, credentials: 'same-origin' })
-    .then(r => r.json())
-    .then(data => {
-      if(data.items && data.items.length){
-        data.items.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'thumb-item';
-          let inner = '';
-          if(item.type === 'video'){
-            inner += `<video controls src="${item.url}" class="thumb-video"></video>`;
-          } else {
-            inner += `<img src="${item.url}" alt="Portfolio item">`;
-          }
-          inner += `\n<form action="/admin/portfolio/${item.id}/delete" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">`;
-          inner += `<button type="submit" class="thumb-remove" title="Remove">×</button></form>`;
-          inner += `<form action="/admin/portfolio/${item.id}/edit" method="POST" style="margin-top:0.45rem; display:block;">`;
-          inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
-          inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button></div></form>`;
-          div.innerHTML = inner;
-          if(thumbManager) thumbManager.appendChild(div);
-        });
-      }
-    }).catch(err => console.error(err));
->>>>>>> Stashed changes
-=======
     const url = '{{ url_for("upload_portfolio_items", worker_id=worker.id) }}';
     const form = new FormData();
     for(const f of files) form.append('files', f);
@@ -313,10 +191,6 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         }
       }).catch(err => console.error(err));
-<<<<<<< Updated upstream
-=======
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
->>>>>>> Stashed changes
     {% endif %}
   }
 
@@ -331,11 +205,6 @@ document.addEventListener('DOMContentLoaded', function () {
     dropZone.addEventListener('dragleave', function(e){ dropZone.classList.remove('drop-zone-active'); });
     dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('drop-zone-active'); const files = e.dataTransfer.files; uploadFiles(files); });
   }
-<<<<<<< Updated upstream
->>>>>>> 86c53add6e0b1d04d26fc79ae77ad75faa519e93
-=======
-
->>>>>>> Stashed changes
 });
 </script>
 
