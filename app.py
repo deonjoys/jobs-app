@@ -10,19 +10,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 IS_VERCEL = os.getenv('VERCEL') == '1'
+IS_PRODUCTION = IS_VERCEL or os.getenv('APP_ENV') == 'production'
 SECRET_KEY = os.getenv('SECRET_KEY')
-if IS_VERCEL and not SECRET_KEY:
-    raise RuntimeError('Set SECRET_KEY in the Vercel project environment variables.')
+if IS_PRODUCTION and not SECRET_KEY:
+    raise RuntimeError('Set SECRET_KEY in the production environment variables.')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
-if IS_VERCEL and not ADMIN_PASSWORD:
-    raise RuntimeError('Set ADMIN_PASSWORD in the Vercel project environment variables.')
+if IS_PRODUCTION and not ADMIN_PASSWORD:
+    raise RuntimeError('Set ADMIN_PASSWORD in the production environment variables.')
 app.secret_key = SECRET_KEY or 'jobs_secret_key'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_ROOT = (
-    os.path.join('/tmp', 'jobs-app-uploads')
-    if IS_VERCEL
-    else os.path.join(BASE_DIR, 'static', 'uploads')
+    os.getenv('UPLOAD_DIR')
+    or (
+        os.path.join('/tmp', 'jobs-app-uploads')
+        if IS_VERCEL
+        else os.path.join(BASE_DIR, 'static', 'uploads')
+    )
 )
 
 DB_USER = os.getenv('DB_USER', 'postgres')
@@ -32,10 +36,10 @@ DB_PORT = os.getenv('DB_PORT', '5432')
 DB_NAME = os.getenv('DB_NAME', 'jobs_db')
 
 DEFAULT_DB_URI = os.getenv('DATABASE_URL') or os.getenv('DB_URL')
-if IS_VERCEL and not DEFAULT_DB_URI:
-    raise RuntimeError('Set DATABASE_URL to a hosted PostgreSQL connection string in Vercel.')
+if IS_PRODUCTION and not DEFAULT_DB_URI:
+    raise RuntimeError('Set DATABASE_URL to a hosted database connection string.')
 if not DEFAULT_DB_URI:
-    if any([os.getenv('DB_USER'), os.getenv('DB_PASS'), os.getenv('DB_HOST'), os.getenv('DB_PORT'), os.getenv('DB_NAME')]):
+    if any(os.getenv(key) for key in ('DB_USER', 'DB_PASS', 'DB_HOST', 'DB_PORT', 'DB_NAME')):
         DEFAULT_DB_URI = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     else:
         DEFAULT_DB_URI = f"sqlite:///{os.path.join(BASE_DIR, 'jobs.db')}"
@@ -58,9 +62,7 @@ os.makedirs(PORTFOLIO_DIR, exist_ok=True)
 
 
 def uploaded_file_url(folder, filename):
-    if IS_VERCEL:
-        return url_for('uploaded_file', folder=folder, filename=filename)
-    return url_for('static', filename=f'uploads/{folder}/{filename}')
+    return url_for('uploaded_file', folder=folder, filename=filename)
 
 
 @app.route('/uploads/<folder>/<filename>')

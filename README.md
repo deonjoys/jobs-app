@@ -2,42 +2,35 @@
 
 A Flask booking marketplace for construction and repair professionals.
 
-## Deploy to Vercel
+## Deploy to Render
 
-1. Push this repository to GitHub and import it into Vercel.
-2. Create a hosted PostgreSQL database. The database must be reachable from
-   Vercel and should use SSL if the provider requires it.
-3. In **Vercel → Project → Settings → Environment Variables**, set these for
-   Production (and Preview if needed):
-   - `DATABASE_URL` — the PostgreSQL connection URL from your database provider.
-   - `SECRET_KEY` — a long, random secret used to sign Flask sessions.
-   - `ADMIN_PASSWORD` — the initial admin password. Change it to a strong,
-     unique password before launch.
-4. Redeploy after adding or changing environment variables.
+1. Push this repository to GitHub and select **New → Blueprint** in Render.
+   Connect the repository and apply the settings in `render.yaml`.
+2. The Blueprint creates a Python web service, PostgreSQL database, and a
+   persistent disk for worker photos and portfolio media. These resources use
+   paid Render plans; the disk is necessary because Render's service
+   filesystem is otherwise temporary.
+3. After the first deploy, open the web service's **Environment** page and
+   retrieve the generated `ADMIN_PASSWORD`, or replace it with a strong
+   password. Set a custom value before the first deploy if preferred. The
+   generated `SECRET_KEY` and database connection are configured by the
+   Blueprint.
+4. Visit the service's `onrender.com` URL and sign in at `/admin/login`.
+   Change the admin password after signing in if you used a generated value.
 
-Vercel detects Python 3.12 from `.python-version`, installs packages from
-`requirements.txt`, and routes requests through `app.py` using `vercel.json`.
-The app creates its tables on startup. On first startup it also creates the
-admin account using `ADMIN_PASSWORD`; changing that environment variable later
-does not reset an existing admin password.
+The app creates its database tables on startup. It creates the initial admin
+account using `ADMIN_PASSWORD`; changing that environment variable later does
+not reset an existing admin password. Keep the Render database and disk
+attached when redeploying so records and uploads remain available.
 
-In the admin worker form, use **+ Add Photos** and **+ Add Videos** to select
-multiple portfolio files. Local previews are shown immediately, and portfolio
-media is saved as Data URLs in the database. Contractors' portfolio photos can
-be opened in a lightbox, and videos play in the home-page Info modal. Portfolio
-uploads are limited by the app's 16 MB request-size limit; storing Data URLs
-increases database storage use.
-
-Vercel's function filesystem is not persistent. Portfolio media is stored in
-the database, but worker profile photos are still written to `/tmp` and may
-disappear between function invocations. Configure object storage for durable
-worker profile photos in production.
+Uploads accept images and videos and are limited to 16 MB per request.
 
 ## Run locally
 
 Install dependencies with `pip install -r requirements.txt`, then run
 `python app.py`. Without database environment variables, the app uses local
-SQLite (`jobs.db`).
+SQLite (`jobs.db`) and stores uploads in `static/uploads`.
 
 For local PostgreSQL, set `DATABASE_URL`, `SECRET_KEY`, and `ADMIN_PASSWORD`
-in your shell before starting the app.
+in your shell before starting the app. In production, the app requires those
+secrets and a database URL rather than falling back to development defaults.
