@@ -70,14 +70,12 @@
               class="portfolio-item media-button"
               data-media-url="{{ item.url }}"
               data-media-type="{{ item.file_type }}"
+              data-media-mime="{{ item.mime_type }}"
               data-caption="{{ item.caption or 'Portfolio item' }}"
               aria-label="Open {{ item.file_type }} for {{ worker.name }}"
             >
               {% if item.file_type == 'video' %}
-                <video controls preload="metadata" class="portfolio-video">
-                  <source src="{{ item.url }}" type="video/{{ item.filename.rsplit('.', 1)[1].lower() }}">
-                  Your browser does not support the video tag.
-                </video>
+                <span class="video-preview" aria-hidden="true">Video</span>
                 <span class="media-badge">Video</span>
               {% else %}
                 <img src="{{ item.url }}" alt="{{ item.caption or 'Portfolio photo' }}">
@@ -122,13 +120,14 @@
         button.addEventListener('click', function () {
           const url = esc(button.dataset.mediaUrl);
           const type = button.dataset.mediaType;
+          const mimeType = button.dataset.mediaMime;
           const caption = esc(button.dataset.caption || 'Portfolio item');
 
           if (type === 'video') {
             content.innerHTML = `
               <div class="portfolio-lightbox-media-wrap">
-                <video controls playsinline autoplay class="portfolio-lightbox-media">
-                  <source src="${url}">
+                <video controls playsinline autoplay preload="auto" class="portfolio-lightbox-media">
+                  <source src="${url}" type="${esc(mimeType)}">
                 </video>
               </div>
               <p class="portfolio-lightbox-caption">${caption}</p>

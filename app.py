@@ -75,6 +75,11 @@ def uploaded_file(folder, filename):
 
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'}
 VIDEO_EXT = {'mp4', 'webm', 'mov'}
+VIDEO_MIME_TYPES = {
+    'mp4': 'video/mp4',
+    'webm': 'video/webm',
+    'mov': 'video/quicktime',
+}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB uploads
 
 TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
@@ -155,6 +160,11 @@ class PortfolioImage(db.Model):
     def file_type(self):
         ext = self.filename.rsplit('.', 1)[1].lower() if '.' in self.filename else ''
         return 'video' if ext in VIDEO_EXT else 'image'
+
+    @property
+    def mime_type(self):
+        ext = self.filename.rsplit('.', 1)[1].lower() if '.' in self.filename else ''
+        return VIDEO_MIME_TYPES.get(ext, 'application/octet-stream')
 
 
 class AdminConfig(db.Model):
@@ -490,7 +500,15 @@ def worker_portfolio_json(worker_id):
     return jsonify({
         'name': worker.name,
         'trade': worker.trade,
-        'images': [{'url': img.url, 'caption': img.caption, 'type': img.file_type} for img in worker.portfolio_images],
+        'images': [
+            {
+                'url': img.url,
+                'caption': img.caption,
+                'type': img.file_type,
+                'mime_type': img.mime_type,
+            }
+            for img in worker.portfolio_images
+        ],
     })
 
 

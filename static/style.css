@@ -42,7 +42,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -233,7 +233,10 @@ header.site-head {
 }
 .pro-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--line-strong); }
 
-.pro-photo-wrap { position: relative; aspect-ratio: 4 / 3; background: #e2e8f0; }
+.pro-photo-wrap {
+  position: relative; width: 70%; aspect-ratio: 4 / 3; margin: 0 auto;
+  background: #e2e8f0;
+}
 .pro-photo-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .pro-avatar-fallback {
   width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
@@ -362,12 +365,12 @@ header.site-head {
 .profile-page { padding: 2rem 0 3rem; }
 
 .profile-hero {
-  display: grid; grid-template-columns: 280px 1fr; gap: 2rem;
+  display: grid; grid-template-columns: 196px 1fr; gap: 2rem;
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);
 }
 .profile-photo-wrap {
-  width: 100%; min-height: 280px; border-radius: var(--radius);
+  width: 100%; min-height: 196px; border-radius: var(--radius);
   overflow: hidden; background: #e2e8f0;
 }
 .profile-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -403,6 +406,16 @@ header.site-head {
   transform: translateY(-2px); box-shadow: var(--shadow-lg);
 }
 .portfolio-item img, .portfolio-item video { display: block; width: 100%; height: 160px; object-fit: cover; }
+.video-preview {
+  display: flex; width: 100%; height: 160px; align-items: center; justify-content: center;
+  flex-direction: column; gap: 0.45rem; background: linear-gradient(135deg, #334155, #0f172a);
+  color: #fff; font-size: 0.8rem; font-weight: 600;
+}
+.video-preview::before {
+  content: '▶'; display: grid; width: 42px; height: 42px; place-items: center;
+  padding-left: 3px; border-radius: 50%; background: rgba(255, 255, 255, 0.2);
+  font-size: 1rem;
+}
 .media-badge {
   position: absolute; top: 0.6rem; right: 0.6rem;
   padding: 0.2rem 0.55rem; border-radius: 999px;
@@ -550,10 +563,12 @@ table.ledger td.empty { text-align: center; color: var(--muted); padding: 2.5rem
 }
 .thumb-video { background: #000; }
 .video-thumb {
-  width: 46px; height: 46px; border-radius: 8px; background: var(--ink);
-  color: #fff; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
-  font-weight: 600;
+  width: 46px; height: 46px; border-radius: 8px;
+  background: linear-gradient(135deg, #334155, #0f172a);
+  color: #fff; font-size: 0.65rem; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0.1rem; font-weight: 600;
 }
+.video-thumb::before { content: '▶'; font-size: 0.8rem; }
 .portfolio-video {
   width: 100%; height: 160px; border-radius: 0; object-fit: cover; background: #000; display: block;
 }
@@ -596,7 +611,7 @@ footer.site-foot { text-align: center; padding: 2rem 1rem 2.5rem; color: var(--m
   .hero { padding: 2.5rem 0 1rem; }
   .search-box { max-width: 100%; }
   .profile-hero { grid-template-columns: 1fr; padding: 1rem; gap: 1.25rem; }
-  .profile-photo-wrap { min-height: 240px; }
+  .profile-photo-wrap { width: 70%; min-height: 168px; margin: 0 auto; }
   .admin-topbar { align-items: flex-start; }
   .btn-row { flex-direction: column-reverse; }
   .btn-row .btn-solid, .btn-row .btn-ghost { width: 100%; }

@@ -68,6 +68,39 @@ def test_worker_profile_page_has_portfolio_lightbox_support():
         assert 'View' in html
 
 
+def test_video_portfolio_uses_play_preview_and_browser_mime_type():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    with app.test_client() as client:
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            worker = Worker(
+                name='Jane Smith',
+                trade='Plumber',
+                phone='+233200000000',
+                experience_years=5,
+            )
+            db.session.add(worker)
+            db.session.flush()
+            db.session.add(
+                PortfolioImage(worker_id=worker.id, filename='sample.mov')
+            )
+            worker_id = worker.id
+            db.session.commit()
+
+        response = client.get(f'/worker/{worker_id}')
+        html = response.get_data(as_text=True)
+        assert response.status_code == 200
+        assert 'class="video-preview"' in html
+        assert 'data-media-mime="video/quicktime"' in html
+        assert 'preload="auto"' in html
+
+        portfolio = client.get(f'/api/worker/{worker_id}/portfolio')
+        assert portfolio.json['images'][0]['mime_type'] == 'video/quicktime'
+
+
 def test_legacy_availability_labels_use_updated_names():
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'

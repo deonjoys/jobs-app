@@ -202,8 +202,8 @@ function openPortfolio(workerId, name) {
         if (img.type === 'video') {
           return `
             <div class="portfolio-media-card">
-              <video controls playsinline preload="metadata">
-                <source src="${esc(img.url)}">
+              <video controls playsinline preload="none">
+                <source src="${esc(img.url)}" type="${esc(img.mime_type)}">
               </video>
               ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
             </div>
