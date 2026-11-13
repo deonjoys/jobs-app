@@ -78,6 +78,10 @@ VIDEO_EXT = {'mp4', 'webm', 'mov'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB uploads
 
 TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
+AVAILABILITY_LABELS = {
+    'Small jobs': 'Quick job',
+    'Big contracts': 'Full contract',
+}
 
 db = SQLAlchemy(app)
 
@@ -129,7 +133,9 @@ class Worker(db.Model):
     def availability_list(self):
         try:
             availability = json.loads(self.availability) if self.availability else []
-            return availability if isinstance(availability, list) else []
+            if not isinstance(availability, list):
+                return []
+            return [AVAILABILITY_LABELS.get(item, item) for item in availability]
         except (TypeError, ValueError):
             return []
 
@@ -413,10 +419,7 @@ def edit_worker(worker_id):
         flash(f"{worker.name}'s profile was updated.", "success")
         return redirect(url_for('admin_dashboard'))
 
-    try:
-        selected_availability = json.loads(worker.availability) if worker.availability else []
-    except (TypeError, ValueError):
-        selected_availability = []
+    selected_availability = worker.availability_list
     return render_template('admin/worker_form.html', worker=worker, trades=TRADES, selected_availability=selected_availability)
 
 

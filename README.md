@@ -1,4 +1,4 @@
-# Jobs App
+# JobX
 
 A Flask booking marketplace for construction and repair professionals.
 

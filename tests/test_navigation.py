@@ -35,7 +35,7 @@ def test_admin_login_reveals_admin_portal():
         response = client.post('/admin/login', follow_redirects=True)
         assert response.status_code == 200
         html = response.get_data(as_text=True)
-        assert 'JobS Admin' in html
+        assert 'JobX Admin' in html
 
 
 def test_worker_profile_page_has_portfolio_lightbox_support():
@@ -66,6 +66,37 @@ def test_worker_profile_page_has_portfolio_lightbox_support():
         html = response.get_data(as_text=True)
         assert 'portfolio-lightbox' in html
         assert 'View' in html
+
+
+def test_legacy_availability_labels_use_updated_names():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    with app.test_client() as client:
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            worker = Worker(
+                name='Jane Smith',
+                trade='Plumber',
+                phone='+233200000000',
+                experience_years=5,
+                availability='["Small jobs", "Big contracts"]',
+            )
+            db.session.add(worker)
+            db.session.commit()
+            worker_id = worker.id
+
+        profile = client.get(f'/worker/{worker_id}')
+        assert 'Quick job' in profile.get_data(as_text=True)
+        assert 'Full contract' in profile.get_data(as_text=True)
+
+        with client.session_transaction() as session:
+            session['is_admin'] = True
+        form = client.get(f'/admin/workers/{worker_id}/edit')
+        html = form.get_data(as_text=True)
+        assert 'value="Quick job" checked' in html
+        assert 'value="Full contract" checked' in html
 
 
 def test_home_page_has_booking_form_for_each_worker():

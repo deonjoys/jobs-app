@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ 'Edit' if worker else 'Add' }} Worker | JobS Admin</title>
+<title>{{ 'Edit' if worker else 'Add' }} Worker | JobX Admin</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -13,7 +13,7 @@
     <a href="/admin" class="brand-link" aria-label="Back to the dashboard">
       <span class="brand-mark">J</span>
       <span class="brand-copy">
-        <strong>JobS Admin</strong>
+        <strong>JobX Admin</strong>
         <small>Roster &amp; bookings</small>
       </span>
     </a>
@@ -84,8 +84,8 @@
       <div class="field">
         <label>Available for</label>
         <div class="checkbox-group">
-          <label><input type="checkbox" name="availability" value="Small jobs" {% if 'Small jobs' in selected_availability %}checked{% endif %}> Small jobs</label>
-          <label><input type="checkbox" name="availability" value="Big contracts" {% if 'Big contracts' in selected_availability %}checked{% endif %}> Big contracts</label>
+          <label><input type="checkbox" name="availability" value="Quick job" {% if 'Quick job' in selected_availability %}checked{% endif %}> Quick job</label>
+          <label><input type="checkbox" name="availability" value="Full contract" {% if 'Full contract' in selected_availability %}checked{% endif %}> Full contract</label>
           <label><input type="checkbox" name="availability" value="Unfinished contract" {% if 'Unfinished contract' in selected_availability %}checked{% endif %}> Unfinished contract</label>
         </div>
         <small>Selections appear on the worker's profile as "Available for" items.</small>
@@ -146,7 +146,7 @@
   </div>
 </div>
 
-<footer class="site-foot">JobS Admin — internal use only.</footer>
+<footer class="site-foot">JobX Admin — internal use only.</footer>
 
   <script>
 document.addEventListener('DOMContentLoaded', function(){
