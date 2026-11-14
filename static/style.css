@@ -307,8 +307,8 @@ header.site-head {
   background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
 }
 .btn-info:hover { background: var(--bg); }
-.btn-call { background: var(--good); color: #fff; border: 1px solid var(--good); }
-.btn-call:hover { background: #166534; border-color: #166534; }
+.btn-call { background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
+.btn-call:hover { background: var(--bg); }
 .btn-view { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
 .btn-view:hover { background: var(--bg); }
 

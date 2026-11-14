@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -138,17 +139,75 @@ def test_video_upload_saves_and_serves_generated_thumbnail(tmp_path, monkeypatch
         response = client.post(
             f'/admin/workers/{worker_id}/upload',
             data={
-                'files': (io.BytesIO(b'video data'), 'clip.mp4'),
+                'files': [
+                    (io.BytesIO(b'video data'), 'clip.mp4'),
+                    (io.BytesIO(b'image data'), 'photo.png'),
+                ],
                 'thumbnail_0': (io.BytesIO(b'thumbnail data'), 'clip.jpg'),
             },
             content_type='multipart/form-data',
         )
         assert response.status_code == 200
+        assert len(response.json['items']) == 2
         item = response.json['items'][0]
         assert item['thumbnail_url']
         thumbnail_response = client.get(item['thumbnail_url'])
         assert thumbnail_response.status_code == 200
         assert thumbnail_response.data == b'thumbnail data'
+        assert response.json['items'][1]['thumbnail_url'] is None
+
+
+def test_worker_edit_form_has_valid_form_structure_and_updates_captions():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    with app.test_client() as client:
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            worker = Worker(
+                name='Jane Smith',
+                trade='Plumber',
+                phone='+233200000000',
+                experience_years=5,
+            )
+            db.session.add(worker)
+            db.session.flush()
+            image = PortfolioImage(worker_id=worker.id, filename='sample.jpg')
+            db.session.add(image)
+            db.session.commit()
+            worker_id = worker.id
+            image_id = image.id
+
+        with client.session_transaction() as session:
+            session['is_admin'] = True
+        page = client.get(f'/admin/workers/{worker_id}/edit')
+        html = page.get_data(as_text=True)
+        depth = 0
+        for tag in re.findall(r'</?form\b[^>]*>', html):
+            if tag.startswith('</'):
+                depth -= 1
+            else:
+                assert depth == 0, 'Worker edit page must not have nested forms'
+                depth += 1
+        assert depth == 0
+        assert 'name="portfolio_images"' in html
+        assert 'class="thumb-manager"' in html
+
+        response = client.post(
+            f'/admin/workers/{worker_id}/edit',
+            data={
+                'name': 'Jane Smith',
+                'trade': 'Plumber',
+                'phone': '+233200000000',
+                'experience_years': '5',
+                'status': 'Available',
+                f'portfolio_caption_{image_id}': 'Bathroom renovation',
+            },
+        )
+        assert response.status_code == 302
+        with app.app_context():
+            assert db.session.get(PortfolioImage, image_id).caption == 'Bathroom renovation'
 
 
 def test_new_worker_upload_saves_video_thumbnail(tmp_path, monkeypatch):

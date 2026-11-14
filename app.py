@@ -80,7 +80,7 @@ VIDEO_MIME_TYPES = {
     'webm': 'video/webm',
     'mov': 'video/quicktime',
 }
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB uploads
+app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB uploads
 
 TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
 AVAILABILITY_LABELS = {
@@ -448,6 +448,9 @@ def edit_worker(worker_id):
         worker.bio = request.form.get('bio', '').strip()
         worker.availability = json.dumps(request.form.getlist('availability'))
         worker.status = request.form.get('status', 'Available')
+        for image in worker.portfolio_images:
+            caption = request.form.get(f'portfolio_caption_{image.id}', '').strip()
+            image.caption = caption or None
 
         new_photo = save_upload(request.files.get('photo'), WORKER_PHOTO_DIR)
         if new_photo:

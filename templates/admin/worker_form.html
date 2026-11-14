@@ -100,7 +100,7 @@
         <small>{{ 'Upload a new photo to replace the current one.' if worker else 'JPG, PNG or WEBP.' }}</small>
       </div>
 
-      {% if worker and worker.portfolio_images %}
+      {% if worker %}
       <div class="field">
         <label>Current portfolio items</label>
         <div class="thumb-manager">
@@ -115,15 +115,13 @@
             {% else %}
             <img src="{{ img.url }}" alt="Portfolio item">
             {% endif %}
-            <form action="{{ url_for('delete_portfolio_image', image_id=img.id) }}" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">
-              <button type="submit" class="thumb-remove" title="Remove">×</button>
-            </form>
-            <form action="{{ url_for('edit_portfolio_image', image_id=img.id) }}" method="POST" style="margin-top:0.45rem; display:block;">
-              <input type="text" name="caption" value="{{ img.caption or '' }}" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">
+            <button type="submit" form="delete-portfolio-{{ img.id }}" class="thumb-remove" title="Remove" onclick="return confirm('Remove this portfolio item?');">×</button>
+            <div style="margin-top:0.45rem; display:block;">
+              <input type="text" name="portfolio_caption_{{ img.id }}" value="{{ img.caption or '' }}" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">
               <div style="margin-top:0.3rem; text-align:right;">
-                <button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button>
+                <button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save caption</button>
               </div>
-            </form>
+            </div>
           </div>
           {% endfor %}
         </div>
@@ -150,6 +148,11 @@
         <a href="{{ url_for('admin_dashboard') }}" class="btn-ghost">Cancel</a>
       </div>
     </form>
+    {% if worker %}
+      {% for img in worker.portfolio_images %}
+    <form id="delete-portfolio-{{ img.id }}" action="{{ url_for('delete_portfolio_image', image_id=img.id) }}" method="POST"></form>
+      {% endfor %}
+    {% endif %}
   </div>
 </div>
 
@@ -163,10 +166,12 @@ document.addEventListener('DOMContentLoaded', function(){
   const thumbManager = document.querySelector('.thumb-manager');
   const formElement = fileInput.closest('form');
   const thumbnailInputs = document.getElementById('portfolio-thumbnail-inputs');
-  const submitButton = formElement.querySelector('button[type="submit"]');
+  const submitButton = formElement ? formElement.querySelector('button[type="submit"]') : null;
   let thumbnailGeneration = Promise.resolve();
   let generatingThumbnails = false;
   let thumbnailRequest = 0;
+  const selectedPortfolioFiles = [];
+  const selectedPortfolioThumbnails = [];
 
   function isVideoFile(file){
     return file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name);
@@ -256,9 +261,11 @@ document.addEventListener('DOMContentLoaded', function(){
   async function uploadFiles(files){
     if(!files || files.length === 0) return;
     {% if worker %}
-    const thumbnails = await createThumbnails(files);
+    const newFiles = Array.from(files);
+    fileInput.value = '';
+    const thumbnails = await createThumbnails(newFiles);
     const form = new FormData();
-    files.forEach(file => form.append('files', file));
+    newFiles.forEach(file => form.append('files', file));
     thumbnails.forEach(({index, file}) => form.append(`thumbnail_${index}`, file));
     fetch('{{ url_for("upload_portfolio_items", worker_id=worker.id) }}', {
       method: 'POST',
@@ -281,14 +288,19 @@ document.addEventListener('DOMContentLoaded', function(){
           } else {
             inner += `<img src="${item.url}" alt="Portfolio item">`;
           }
-          inner += `\n<form action="/admin/portfolio/${item.id}/delete" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">`;
-          inner += `<button type="submit" class="thumb-remove" title="Remove">×</button></form>`;
-          inner += `<form action="/admin/portfolio/${item.id}/edit" method="POST" style="margin-top:0.45rem; display:block;">`;
-          inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
-          inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button></div></form>`;
+          inner += `<button type="submit" form="delete-portfolio-${item.id}" class="thumb-remove" title="Remove" onclick="return confirm('Remove this portfolio item?');">×</button>`;
+          inner += `<div style="margin-top:0.45rem; display:block;">`;
+          inner += `<input type="text" name="portfolio_caption_${item.id}" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
+          inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save caption</button></div></div>`;
           div.innerHTML = inner;
           if(thumbManager) thumbManager.appendChild(div);
+          const deleteForm = document.createElement('form');
+          deleteForm.id = `delete-portfolio-${item.id}`;
+          deleteForm.action = `/admin/portfolio/${item.id}/delete`;
+          deleteForm.method = 'POST';
+          formElement.after(deleteForm);
         });
+        fileInput.value = '';
       })
       .catch(error => {
         console.error(error);
@@ -296,18 +308,26 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     {% else %}
     generatingThumbnails = true;
-    submitButton.disabled = true;
+    if(submitButton) submitButton.disabled = true;
+    if(addBtn) addBtn.disabled = true;
     const requestId = ++thumbnailRequest;
-    thumbnailGeneration = createThumbnails(files).then((thumbnails) => {
+    const newFiles = Array.from(files);
+    const fileOffset = selectedPortfolioFiles.length;
+    selectedPortfolioFiles.push(...newFiles);
+    thumbnailGeneration = createThumbnails(newFiles).then((thumbnails) => {
       if(requestId !== thumbnailRequest) return;
+      selectedPortfolioThumbnails.push(
+        ...thumbnails.map(({index, file}) => ({index: index + fileOffset, file}))
+      );
       const dataTransfer = new DataTransfer();
-      for(const file of files) dataTransfer.items.add(file);
+      selectedPortfolioFiles.forEach(file => dataTransfer.items.add(file));
       fileInput.files = dataTransfer.files;
-      setThumbnailInputs(thumbnails);
+      setThumbnailInputs(selectedPortfolioThumbnails);
     }).finally(() => {
       if(requestId === thumbnailRequest){
         generatingThumbnails = false;
-        submitButton.disabled = false;
+        if(submitButton) submitButton.disabled = false;
+        if(addBtn) addBtn.disabled = false;
       }
     });
     await thumbnailGeneration;
@@ -315,7 +335,11 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   if(addBtn && fileInput){
-    addBtn.addEventListener('click', function(e){ e.preventDefault(); fileInput.click(); });
+    addBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      fileInput.value = '';
+      fileInput.click();
+    });
     fileInput.addEventListener('change', function(e){ uploadFiles(e.target.files); });
   }
 
