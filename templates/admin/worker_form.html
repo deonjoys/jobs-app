@@ -107,7 +107,11 @@
           {% for img in worker.portfolio_images %}
           <div class="thumb-item">
             {% if img.file_type == 'video' %}
-            <video controls src="{{ img.url }}" class="thumb-video"></video>
+              {% if img.thumbnail_url %}
+              <img src="{{ img.thumbnail_url }}" alt="Video thumbnail" class="thumb-video">
+              {% else %}
+              <video controls src="{{ img.url }}" class="thumb-video"></video>
+              {% endif %}
             {% else %}
             <img src="{{ img.url }}" alt="Portfolio item">
             {% endif %}
@@ -131,6 +135,9 @@
         <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
           <button type="button" id="add-portfolio-btn" class="btn-ghost">Add item</button>
           <input type="file" name="portfolio_images" accept="image/*,video/*" multiple style="display:none;">
+          {% if not worker %}
+          <div id="portfolio-thumbnail-inputs" hidden></div>
+          {% endif %}
           {% if worker %}
           <div id="portfolio-drop-zone" class="drop-zone">Drop files here or click Add item</div>
           {% endif %}
@@ -154,43 +161,156 @@ document.addEventListener('DOMContentLoaded', function(){
   const fileInput = document.querySelector('input[name="portfolio_images"]');
   const dropZone = document.getElementById('portfolio-drop-zone');
   const thumbManager = document.querySelector('.thumb-manager');
+  const formElement = fileInput.closest('form');
+  const thumbnailInputs = document.getElementById('portfolio-thumbnail-inputs');
+  const submitButton = formElement.querySelector('button[type="submit"]');
+  let thumbnailGeneration = Promise.resolve();
+  let generatingThumbnails = false;
+  let thumbnailRequest = 0;
 
-  function uploadFiles(files){
-    if(!files || files.length === 0) return;
-    // If this is the add form (no worker yet), just attach files to the regular form file input
-    {% if not worker %}
-    // For new worker, populate the hidden input so files are sent on form submit
-    const dataTransfer = new DataTransfer();
-    for(const f of files) dataTransfer.items.add(f);
-    if(fileInput) fileInput.files = dataTransfer.files;
-    return;
-    {% else %}
-    const url = '{{ url_for("upload_portfolio_items", worker_id=worker.id) }}';
-    const form = new FormData();
-    for(const f of files) form.append('files', f);
-    fetch(url, { method: 'POST', body: form, credentials: 'same-origin' })
-      .then(r => r.json())
-      .then(data => {
-        if(data.items && data.items.length){
-          data.items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'thumb-item';
-            let inner = '';
-            if(item.type === 'video'){
-              inner += `<video controls src="${item.url}" class="thumb-video"></video>`;
-            } else {
-              inner += `<img src="${item.url}" alt="Portfolio item">`;
-            }
-            inner += `\n<form action="/admin/portfolio/${item.id}/delete" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">`;
-            inner += `<button type="submit" class="thumb-remove" title="Remove">×</button></form>`;
-            inner += `<form action="/admin/portfolio/${item.id}/edit" method="POST" style="margin-top:0.45rem; display:block;">`;
-            inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
-            inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button></div></form>`;
-            div.innerHTML = inner;
-            if(thumbManager) thumbManager.appendChild(div);
-          });
+  function isVideoFile(file){
+    return file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name);
+  }
+
+  function captureVideoThumbnail(file){
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      const objectUrl = URL.createObjectURL(file);
+      let timeout;
+      let finished = false;
+
+      function finish(thumbnail){
+        if(finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        URL.revokeObjectURL(objectUrl);
+        resolve(thumbnail);
+      }
+
+      function captureFrame(){
+        if(!video.videoWidth || !video.videoHeight){
+          finish(null);
+          return;
         }
-      }).catch(err => console.error(err));
+        const scale = Math.min(1, 640 / video.videoWidth, 360 / video.videoHeight);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
+        const context = canvas.getContext('2d');
+        if(!context){
+          finish(null);
+          return;
+        }
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          finish(blob ? new File([blob], file.name + '.jpg', {type: 'image/jpeg'}) : null);
+        }, 'image/jpeg', 0.82);
+      }
+
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.addEventListener('loadeddata', function onLoadedData(){
+        video.removeEventListener('loadeddata', onLoadedData);
+        const frameTime = Number.isFinite(video.duration) ? Math.min(0.1, video.duration / 2) : 0;
+        if(frameTime > 0){
+          video.addEventListener('seeked', captureFrame, {once: true});
+          video.currentTime = frameTime;
+        } else {
+          captureFrame();
+        }
+      });
+      video.addEventListener('error', () => finish(null), {once: true});
+      timeout = setTimeout(() => finish(null), 15000);
+      video.src = objectUrl;
+    });
+  }
+
+  async function createThumbnails(files){
+    const results = await Promise.all(Array.from(files, async (file, index) => {
+      if(!isVideoFile(file)) return null;
+      try {
+        const thumbnail = await captureVideoThumbnail(file);
+        return thumbnail ? {index: index, file: thumbnail} : null;
+      } catch(error) {
+        console.error('Could not generate video thumbnail:', error);
+        return null;
+      }
+    }));
+    return results.filter(Boolean);
+  }
+
+  function setThumbnailInputs(thumbnails){
+    thumbnailInputs.replaceChildren();
+    thumbnails.forEach(({index, file}) => {
+      const input = document.createElement('input');
+      const dataTransfer = new DataTransfer();
+      input.type = 'file';
+      input.name = `portfolio_thumbnail_${index}`;
+      dataTransfer.items.add(file);
+      input.files = dataTransfer.files;
+      thumbnailInputs.appendChild(input);
+    });
+  }
+
+  async function uploadFiles(files){
+    if(!files || files.length === 0) return;
+    {% if worker %}
+    const thumbnails = await createThumbnails(files);
+    const form = new FormData();
+    files.forEach(file => form.append('files', file));
+    thumbnails.forEach(({index, file}) => form.append(`thumbnail_${index}`, file));
+    fetch('{{ url_for("upload_portfolio_items", worker_id=worker.id) }}', {
+      method: 'POST',
+      body: form,
+      credentials: 'same-origin'
+    })
+      .then(response => {
+        if(!response.ok) throw new Error(`Upload failed (${response.status})`);
+        return response.json();
+      })
+      .then(data => {
+        data.items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'thumb-item';
+          let inner = '';
+          if(item.type === 'video'){
+            inner += item.thumbnail_url
+              ? `<img src="${item.thumbnail_url}" alt="Video thumbnail" class="thumb-video">`
+              : `<video controls src="${item.url}" class="thumb-video"></video>`;
+          } else {
+            inner += `<img src="${item.url}" alt="Portfolio item">`;
+          }
+          inner += `\n<form action="/admin/portfolio/${item.id}/delete" method="POST" onsubmit="return confirm('Remove this portfolio item?');" style="display:inline;">`;
+          inner += `<button type="submit" class="thumb-remove" title="Remove">×</button></form>`;
+          inner += `<form action="/admin/portfolio/${item.id}/edit" method="POST" style="margin-top:0.45rem; display:block;">`;
+          inner += `<input type="text" name="caption" value="" placeholder="Caption (optional)" style="width:100%; padding:0.35rem 0.5rem; font-size:0.78rem; border-radius:8px; border:1px solid var(--line-strong);">`;
+          inner += `<div style="margin-top:0.3rem; text-align:right;"><button type="submit" class="btn-ghost" style="padding:0.25rem 0.6rem; font-size:0.78rem;">Save</button></div></form>`;
+          div.innerHTML = inner;
+          if(thumbManager) thumbManager.appendChild(div);
+        });
+      })
+      .catch(error => {
+        console.error(error);
+        alert('Could not upload portfolio media. Please try again.');
+      });
+    {% else %}
+    generatingThumbnails = true;
+    submitButton.disabled = true;
+    const requestId = ++thumbnailRequest;
+    thumbnailGeneration = createThumbnails(files).then((thumbnails) => {
+      if(requestId !== thumbnailRequest) return;
+      const dataTransfer = new DataTransfer();
+      for(const file of files) dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      setThumbnailInputs(thumbnails);
+    }).finally(() => {
+      if(requestId === thumbnailRequest){
+        generatingThumbnails = false;
+        submitButton.disabled = false;
+      }
+    });
+    await thumbnailGeneration;
     {% endif %}
   }
 
@@ -198,6 +318,22 @@ document.addEventListener('DOMContentLoaded', function(){
     addBtn.addEventListener('click', function(e){ e.preventDefault(); fileInput.click(); });
     fileInput.addEventListener('change', function(e){ uploadFiles(e.target.files); });
   }
+
+  {% if not worker %}
+  formElement.addEventListener('submit', async function(event){
+    if(!generatingThumbnails) return;
+    event.preventDefault();
+    const submitter = event.submitter;
+    submitButton.disabled = true;
+    await thumbnailGeneration;
+    submitButton.disabled = false;
+    if(submitter){
+      formElement.requestSubmit(submitter);
+    } else {
+      formElement.requestSubmit();
+    }
+  });
+  {% endif %}
 
   if(dropZone){
     dropZone.addEventListener('click', function(){ if(fileInput) fileInput.click(); });

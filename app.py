@@ -130,6 +130,14 @@ class Worker(db.Model):
         return None
 
     @property
+    def phone_call_url(self):
+        digits = ''.join(character for character in self.phone if character.isdigit())
+        if not digits:
+            return None
+        prefix = '+' if self.phone.strip().startswith('+') else ''
+        return f'tel:{prefix}{digits}'
+
+    @property
     def initials(self):
         parts = self.name.split()
         return ''.join(p[0] for p in parts[:2]).upper()
@@ -150,11 +158,18 @@ class PortfolioImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
+    thumbnail_filename = db.Column(db.String(255), nullable=True)
     caption = db.Column(db.String(150), nullable=True)
 
     @property
     def url(self):
         return uploaded_file_url('portfolio', self.filename)
+
+    @property
+    def thumbnail_url(self):
+        if self.thumbnail_filename:
+            return uploaded_file_url('portfolio', self.thumbnail_filename)
+        return None
 
     @property
     def file_type(self):
@@ -203,6 +218,14 @@ def save_upload(file_storage, folder):
     filename = f"{uuid.uuid4().hex}.{ext}"
     file_storage.save(os.path.join(folder, filename))
     return filename
+
+
+def save_portfolio_thumbnail(file_storage):
+    if not file_storage or not file_storage.filename:
+        return None
+    if file_storage.filename.rsplit('.', 1)[-1].lower() not in {'jpg', 'jpeg', 'png', 'webp'}:
+        return None
+    return save_upload(file_storage, PORTFOLIO_DIR)
 
 
 def delete_file(folder, filename):
@@ -369,10 +392,21 @@ def add_worker():
         db.session.add(worker)
         db.session.flush()  # get worker.id before commit
 
-        for f in request.files.getlist('portfolio_images'):
+        for index, f in enumerate(request.files.getlist('portfolio_images')):
             fname = save_upload(f, PORTFOLIO_DIR)
             if fname:
-                db.session.add(PortfolioImage(worker_id=worker.id, filename=fname))
+                thumbnail = (
+                    save_portfolio_thumbnail(request.files.get(f'portfolio_thumbnail_{index}'))
+                    if fname.rsplit('.', 1)[-1].lower() in VIDEO_EXT
+                    else None
+                )
+                db.session.add(
+                    PortfolioImage(
+                        worker_id=worker.id,
+                        filename=fname,
+                        thumbnail_filename=thumbnail,
+                    )
+                )
 
         db.session.commit()
         flash(f"{worker.name} was added to the roster.", "success")
@@ -420,10 +454,21 @@ def edit_worker(worker_id):
             delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
             worker.photo_filename = new_photo
 
-        for f in request.files.getlist('portfolio_images'):
+        for index, f in enumerate(request.files.getlist('portfolio_images')):
             fname = save_upload(f, PORTFOLIO_DIR)
             if fname:
-                db.session.add(PortfolioImage(worker_id=worker.id, filename=fname))
+                thumbnail = (
+                    save_portfolio_thumbnail(request.files.get(f'portfolio_thumbnail_{index}'))
+                    if fname.rsplit('.', 1)[-1].lower() in VIDEO_EXT
+                    else None
+                )
+                db.session.add(
+                    PortfolioImage(
+                        worker_id=worker.id,
+                        filename=fname,
+                        thumbnail_filename=thumbnail,
+                    )
+                )
 
         db.session.commit()
         flash(f"{worker.name}'s profile was updated.", "success")
@@ -439,6 +484,7 @@ def delete_worker(worker_id):
     delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
     for img in worker.portfolio_images:
         delete_file(PORTFOLIO_DIR, img.filename)
+        delete_file(PORTFOLIO_DIR, img.thumbnail_filename)
     name = worker.name
     db.session.delete(worker)
     db.session.commit()
@@ -451,6 +497,7 @@ def delete_portfolio_image(image_id):
     image = db.get_or_404(PortfolioImage, image_id)
     worker_id = image.worker_id
     delete_file(PORTFOLIO_DIR, image.filename)
+    delete_file(PORTFOLIO_DIR, image.thumbnail_filename)
     db.session.delete(image)
     db.session.commit()
     flash("Portfolio photo removed.", "success")
@@ -473,13 +520,28 @@ def upload_portfolio_items(worker_id):
     worker = db.get_or_404(Worker, worker_id)
     files = request.files.getlist('files')
     created = []
-    for f in files:
+    for index, f in enumerate(files):
         fname = save_upload(f, PORTFOLIO_DIR)
         if fname:
-            pi = PortfolioImage(worker_id=worker.id, filename=fname)
+            thumbnail = (
+                save_portfolio_thumbnail(request.files.get(f'thumbnail_{index}'))
+                if fname.rsplit('.', 1)[-1].lower() in VIDEO_EXT
+                else None
+            )
+            pi = PortfolioImage(
+                worker_id=worker.id,
+                filename=fname,
+                thumbnail_filename=thumbnail,
+            )
             db.session.add(pi)
             db.session.flush()
-            created.append({'id': pi.id, 'url': pi.url, 'type': pi.file_type, 'caption': pi.caption or ''})
+            created.append({
+                'id': pi.id,
+                'url': pi.url,
+                'thumbnail_url': pi.thumbnail_url,
+                'type': pi.file_type,
+                'caption': pi.caption or '',
+            })
     db.session.commit()
     return jsonify({'items': created})
 
@@ -503,6 +565,7 @@ def worker_portfolio_json(worker_id):
         'images': [
             {
                 'url': img.url,
+                'thumbnail_url': img.thumbnail_url,
                 'caption': img.caption,
                 'type': img.file_type,
                 'mime_type': img.mime_type,
@@ -528,10 +591,24 @@ def ensure_worker_columns():
         db.session.commit()
 
 
+def ensure_portfolio_columns():
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if 'portfolio_images' not in inspector.get_table_names():
+            return
+        columns = {column['name'] for column in inspector.get_columns('portfolio_images')}
+        if 'thumbnail_filename' not in columns:
+            db.session.execute(
+                text("ALTER TABLE portfolio_images ADD COLUMN thumbnail_filename VARCHAR(255)")
+            )
+        db.session.commit()
+
+
 def init_db():
     with app.app_context():
         db.create_all()
         ensure_worker_columns()
+        ensure_portfolio_columns()
         get_admin_config()
 
 

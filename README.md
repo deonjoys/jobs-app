@@ -23,7 +23,9 @@ account using `ADMIN_PASSWORD`; changing that environment variable later does
 not reset an existing admin password. Keep the Render database and disk
 attached when redeploying so records and uploads remain available.
 
-Uploads accept images and videos and are limited to 16 MB per request.
+Uploads accept images and videos and are limited to 16 MB per request. Video
+uploads automatically save a poster thumbnail for the worker profile,
+portfolio, and admin previews.
 
 ## Run locally
 

@@ -295,20 +295,20 @@ header.site-head {
 .portfolio-trigger:hover,
 .portfolio-trigger:focus-visible { background: var(--bg); }
 
-.pro-actions { margin-top: auto; display: flex; gap: 0.5rem; }
+.pro-actions { margin-top: auto; display: flex; gap: 0.4rem; }
 .pro-actions > * { flex: 1; }
 
-.btn-info, .btn-book, .btn-view {
+.btn-info, .btn-call, .btn-view {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 0.6rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.875rem;
+  padding: 0.6rem 0.5rem; border-radius: 10px; font-weight: 600; font-size: 0.82rem;
   text-decoration: none; cursor: pointer; transition: all .15s ease;
 }
 .btn-info {
   background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong);
 }
 .btn-info:hover { background: var(--bg); }
-.btn-book { background: var(--primary); color: #fff; border: 1px solid var(--primary); }
-.btn-book:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-call { background: var(--good); color: #fff; border: 1px solid var(--good); }
+.btn-call:hover { background: #166534; border-color: #166534; }
 .btn-view { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
 .btn-view:hover { background: var(--bg); }
 
@@ -317,20 +317,6 @@ header.site-head {
   border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); background: var(--surface);
 }
 .empty-state strong { display: block; color: var(--ink); font-size: 1.05rem; margin-bottom: 0.3rem; }
-
-/* ---------- Contact card (inside booking modal) ---------- */
-.contact-card { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
-.contact-card-body {
-  padding: 1rem 1.1rem;
-  border-radius: var(--radius);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  display: flex; flex-direction: column; gap: 0.25rem;
-}
-.contact-name { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
-.contact-trade { color: var(--primary-dark); font-weight: 600; font-size: 0.85rem; }
-.contact-phone { color: var(--muted); font-weight: 500; font-size: 0.9rem; }
-.call-link { margin-top: 0.6rem; text-align: center; }
 
 /* ---------- Modals ---------- */
 .modal {
@@ -407,14 +393,17 @@ header.site-head {
 }
 .portfolio-item img, .portfolio-item video { display: block; width: 100%; height: 160px; object-fit: cover; }
 .video-preview {
-  display: flex; width: 100%; height: 160px; align-items: center; justify-content: center;
-  flex-direction: column; gap: 0.45rem; background: linear-gradient(135deg, #334155, #0f172a);
-  color: #fff; font-size: 0.8rem; font-weight: 600;
+  position: relative; display: flex; width: 100%; height: 160px;
+  align-items: center; justify-content: center; overflow: hidden;
+  background: linear-gradient(135deg, #334155, #0f172a);
 }
-.video-preview::before {
-  content: '▶'; display: grid; width: 42px; height: 42px; place-items: center;
-  padding-left: 3px; border-radius: 50%; background: rgba(255, 255, 255, 0.2);
-  font-size: 1rem;
+.video-preview > img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.video-preview-play {
+  position: relative; display: grid; width: 42px; height: 42px; place-items: center;
+  padding-left: 3px; border-radius: 50%; background: rgba(15, 23, 42, 0.65);
+  color: #fff; font-size: 1rem;
 }
 .media-badge {
   position: absolute; top: 0.6rem; right: 0.6rem;
@@ -563,12 +552,13 @@ table.ledger td.empty { text-align: center; color: var(--muted); padding: 2.5rem
 }
 .thumb-video { background: #000; }
 .video-thumb {
-  width: 46px; height: 46px; border-radius: 8px;
+  position: relative; overflow: hidden; width: 46px; height: 46px; border-radius: 8px;
   background: linear-gradient(135deg, #334155, #0f172a);
-  color: #fff; font-size: 0.65rem; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 0.1rem; font-weight: 600;
+  color: #fff; font-size: 0.65rem; display: flex;
+  align-items: center; justify-content: center; font-weight: 600;
 }
-.video-thumb::before { content: '▶'; font-size: 0.8rem; }
+.video-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.video-thumb span { position: relative; padding: 0.1rem 0.25rem; border-radius: 4px; background: rgba(15, 23, 42, 0.68); }
 .portfolio-video {
   width: 100%; height: 160px; border-radius: 0; object-fit: cover; background: #000; display: block;
 }

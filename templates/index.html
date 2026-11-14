@@ -83,7 +83,10 @@
              aria-label="Open {{ worker.name }} portfolio">
           {% for img in worker.portfolio_images[:3] %}
             {% if img.file_type == 'video' %}
-              <div class="video-thumb">Video</div>
+              <div class="video-thumb">
+                {% if img.thumbnail_url %}<img src="{{ img.thumbnail_url }}" alt="">{% endif %}
+                <span>Video</span>
+              </div>
             {% else %}
               <img src="{{ img.url }}" alt="Portfolio">
             {% endif %}
@@ -96,7 +99,9 @@
 
         <div class="pro-actions">
           <a class="btn-info" href="{{ url_for('worker_profile', worker_id=worker.id) }}">View profile</a>
-          <button class="btn-book" onclick="openBookingModal('{{ worker.id }}', '{{ worker.name|e }}', '{{ worker.trade }}', '{{ worker.phone|e }}')">Contact</button>
+          {% if worker.phone_call_url %}
+          <a class="btn-call" href="{{ worker.phone_call_url }}" aria-label="Contact {{ worker.name }} by phone">Call</a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -110,38 +115,6 @@
 </div>
 
 <footer class="site-foot">JobX — connecting clients with verified contractors and repair pros.</footer>
-
-<!-- Contact modal -->
-<div id="bookingModal" class="modal">
-  <div class="modal-card">
-    <h3 id="modalTitle">Book a pro</h3>
-    <p class="modal-sub">Send a booking request or call this professional directly.</p>
-    <div id="modalContent" class="contact-card"></div>
-    <form action="{{ url_for('create_booking') }}" method="post" class="booking-form">
-      <input type="hidden" id="bookingWorkerId" name="worker_id">
-      <div class="field">
-        <label for="clientName">Your name</label>
-        <input id="clientName" type="text" name="client_name" required>
-      </div>
-      <div class="field">
-        <label for="clientPhone">Your phone</label>
-        <input id="clientPhone" type="tel" name="client_phone" required>
-      </div>
-      <div class="field">
-        <label for="serviceAddress">Service address</label>
-        <textarea id="serviceAddress" name="service_address" rows="2" required></textarea>
-      </div>
-      <div class="field">
-        <label for="bookingDate">Preferred date</label>
-        <input id="bookingDate" type="date" name="booking_date" required>
-      </div>
-      <div class="btn-row">
-        <button type="submit" class="btn-solid">Send booking request</button>
-        <button type="button" class="btn-ghost" onclick="closeBookingModal()">Close</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 <!-- Portfolio modal -->
 <div id="portfolioModal" class="modal">
@@ -169,23 +142,6 @@ function toggleWorkerInfo(button) {
   }
 }
 
-function openBookingModal(id, name, trade, phone) {
-  document.getElementById('modalTitle').innerText = name;
-  document.getElementById('bookingWorkerId').value = id;
-  const modalContent = document.getElementById('modalContent');
-  const safePhone = phone || 'Phone not provided';
-  modalContent.innerHTML = `
-    <div class="contact-card-body">
-      <div class="contact-name">${esc(name)}</div>
-      <div class="contact-trade">${esc(trade)}</div>
-      <div class="contact-phone">${esc(safePhone)}</div>
-      <a class="btn-solid call-link" href="tel:${esc(safePhone)}">Call now</a>
-    </div>
-  `;
-  document.getElementById('bookingModal').style.display = 'flex';
-}
-function closeBookingModal() { document.getElementById('bookingModal').style.display = 'none'; }
-
 function openPortfolio(workerId, name) {
   document.getElementById('portfolioTitle').innerText = name + "'s Portfolio";
   const gallery = document.getElementById('portfolioGallery');
@@ -202,7 +158,7 @@ function openPortfolio(workerId, name) {
         if (img.type === 'video') {
           return `
             <div class="portfolio-media-card">
-              <video controls playsinline preload="none">
+              <video controls playsinline preload="none" ${img.thumbnail_url ? `poster="${esc(img.thumbnail_url)}"` : ''}>
                 <source src="${esc(img.url)}" type="${esc(img.mime_type)}">
               </video>
               ${img.caption ? `<p class="portfolio-caption">${esc(img.caption)}</p>` : ''}
@@ -220,11 +176,11 @@ function openPortfolio(workerId, name) {
 }
 function closePortfolio() { document.getElementById('portfolioModal').style.display = 'none'; }
 
-[document.getElementById('bookingModal'), document.getElementById('portfolioModal')].forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+document.getElementById('portfolioModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closePortfolio();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeBookingModal(); closePortfolio(); }
+  if (e.key === 'Escape') closePortfolio();
 });
 </script>
 </body>

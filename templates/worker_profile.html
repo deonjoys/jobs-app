@@ -50,7 +50,9 @@
           </div>
         {% endif %}
         <div class="profile-contact">
-          <a class="btn-solid" href="tel:{{ worker.phone }}">Call worker</a>
+          {% if worker.phone_call_url %}
+          <a class="btn-solid" href="{{ worker.phone_call_url }}">Call worker</a>
+          {% endif %}
           <div>
             <strong>{{ worker.phone }}</strong><br>
             <span>Phone</span>
@@ -75,7 +77,12 @@
               aria-label="Open {{ item.file_type }} for {{ worker.name }}"
             >
               {% if item.file_type == 'video' %}
-                <span class="video-preview" aria-hidden="true">Video</span>
+                <span class="video-preview" aria-hidden="true">
+                  {% if item.thumbnail_url %}
+                  <img src="{{ item.thumbnail_url }}" alt="">
+                  {% endif %}
+                  <span class="video-preview-play">▶</span>
+                </span>
                 <span class="media-badge">Video</span>
               {% else %}
                 <img src="{{ item.url }}" alt="{{ item.caption or 'Portfolio photo' }}">
