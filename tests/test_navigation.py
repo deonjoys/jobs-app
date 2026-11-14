@@ -157,6 +157,46 @@ def test_video_upload_saves_and_serves_generated_thumbnail(tmp_path, monkeypatch
         assert response.json['items'][1]['thumbnail_url'] is None
 
 
+def test_video_upload_accepts_m4v_and_thumbnail_endpoint(tmp_path, monkeypatch):
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    monkeypatch.setattr(app_module, 'PORTFOLIO_DIR', str(tmp_path))
+
+    with app.test_client() as client:
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            worker = Worker(
+                name='Jane Smith',
+                trade='Plumber',
+                phone='+233200000000',
+                experience_years=5,
+            )
+            db.session.add(worker)
+            db.session.commit()
+            worker_id = worker.id
+
+        with client.session_transaction() as session:
+            session['is_admin'] = True
+        response = client.post(
+            f'/admin/workers/{worker_id}/upload',
+            data={'files': (io.BytesIO(b'video data'), 'clip.m4v')},
+            content_type='multipart/form-data',
+        )
+        assert response.status_code == 200
+        item = response.json['items'][0]
+        assert item['type'] == 'video'
+        assert item['mime_type'] == 'video/mp4'
+
+        thumbnail_response = client.post(
+            f"/admin/portfolio/{item['id']}/thumbnail",
+            data={'thumbnail': (io.BytesIO(b'poster'), 'clip.jpg')},
+            content_type='multipart/form-data',
+        )
+        assert thumbnail_response.status_code == 200
+        assert thumbnail_response.json['thumbnail_url']
+
+
 def test_worker_edit_form_has_valid_form_structure_and_updates_captions():
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'

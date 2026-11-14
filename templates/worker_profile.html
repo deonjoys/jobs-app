@@ -103,6 +103,11 @@
     <div class="portfolio-lightbox-dialog">
       <button type="button" class="portfolio-lightbox-close" aria-label="Close media viewer">×</button>
       <div id="portfolioLightboxContent"></div>
+      <div class="portfolio-lightbox-controls">
+        <button type="button" class="btn-ghost" id="portfolioPrevious">Previous</button>
+        <span id="portfolioPosition" aria-live="polite"></span>
+        <button type="button" class="btn-ghost" id="portfolioNext">Next</button>
+      </div>
     </div>
   </div>
 
@@ -111,6 +116,12 @@
       const lightbox = document.getElementById('portfolioLightbox');
       const content = document.getElementById('portfolioLightboxContent');
       const closeButton = document.querySelector('.portfolio-lightbox-close');
+      const previousButton = document.getElementById('portfolioPrevious');
+      const nextButton = document.getElementById('portfolioNext');
+      const position = document.getElementById('portfolioPosition');
+      const mediaButtons = Array.from(document.querySelectorAll('.media-button'));
+      let activeIndex = 0;
+      let touchStartX = null;
 
       function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -123,8 +134,10 @@
         content.innerHTML = '';
       }
 
-      document.querySelectorAll('.media-button').forEach((button) => {
-        button.addEventListener('click', function () {
+      function showMedia(index) {
+        if(!mediaButtons.length) return;
+        activeIndex = (index + mediaButtons.length) % mediaButtons.length;
+        const button = mediaButtons[activeIndex];
           const url = esc(button.dataset.mediaUrl);
           const type = button.dataset.mediaType;
           const mimeType = button.dataset.mediaMime;
@@ -147,10 +160,27 @@
               <p class="portfolio-lightbox-caption">${caption}</p>
             `;
           }
+        position.textContent = `${activeIndex + 1} of ${mediaButtons.length}`;
+        previousButton.disabled = mediaButtons.length < 2;
+        nextButton.disabled = mediaButtons.length < 2;
+        lightbox.hidden = false;
+      }
 
-          lightbox.hidden = false;
-        });
+      mediaButtons.forEach((button, index) => {
+        button.addEventListener('click', () => showMedia(index));
       });
+      previousButton.addEventListener('click', () => showMedia(activeIndex - 1));
+      nextButton.addEventListener('click', () => showMedia(activeIndex + 1));
+      lightbox.addEventListener('touchstart', event => {
+        touchStartX = event.changedTouches[0].screenX;
+      }, {passive: true});
+      lightbox.addEventListener('touchend', event => {
+        if(touchStartX === null) return;
+        const distance = event.changedTouches[0].screenX - touchStartX;
+        touchStartX = null;
+        if(Math.abs(distance) < 50 || mediaButtons.length < 2) return;
+        showMedia(activeIndex + (distance < 0 ? 1 : -1));
+      }, {passive: true});
 
       closeButton.addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', function (event) {
@@ -159,8 +189,10 @@
         }
       });
       document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && !lightbox.hidden) {
-          closeLightbox();
+        if (!lightbox.hidden) {
+          if(event.key === 'Escape') closeLightbox();
+          if(event.key === 'ArrowLeft') showMedia(activeIndex - 1);
+          if(event.key === 'ArrowRight') showMedia(activeIndex + 1);
         }
       });
     });

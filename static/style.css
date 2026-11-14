@@ -337,6 +337,23 @@ header.site-head {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
+#portfolioGallery {
+  display: flex; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; padding: 0.25rem 0 0.75rem;
+  scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+}
+#portfolioGallery .portfolio-media-card {
+  flex: 0 0 min(78vw, 300px); scroll-snap-align: center;
+}
+.portfolio-modal-controls,
+.portfolio-lightbox-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; margin-bottom: 0.75rem;
+}
+.portfolio-modal-controls .btn-ghost,
+.portfolio-lightbox-controls .btn-ghost {
+  min-width: 90px; padding: 0.45rem 0.75rem;
+}
 .portfolio-media-card {
   display: flex; flex-direction: column; gap: 0.4rem;
   padding: 0.35rem; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
@@ -423,6 +440,8 @@ header.site-head {
   background: #fff; border-radius: var(--radius-lg); padding: 1rem; overflow: auto;
   box-shadow: var(--shadow-lg);
 }
+.portfolio-lightbox-controls { margin: 0.75rem 0 0; }
+.portfolio-lightbox-controls #portfolioPosition { color: var(--muted); font-size: 0.9rem; }
 .portfolio-lightbox-close {
   position: absolute; top: 0.75rem; right: 0.75rem; z-index: 2;
   width: 36px; height: 36px; border-radius: 50%; border: none;
@@ -568,13 +587,7 @@ table.ledger td.empty { text-align: center; color: var(--muted); padding: 2.5rem
   display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; line-height: 1;
 }
 
-.drop-zone {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 0.65rem 1rem; border: 1px dashed var(--line-strong); border-radius: 10px;
-  color: var(--muted); font-size: 0.875rem; background: var(--bg); flex: 1; min-height: 42px;
-  transition: all .15s ease;
-}
-.drop-zone-active { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-dark); }
+
 
 footer.site-foot { text-align: center; padding: 2rem 1rem 2.5rem; color: var(--muted); font-size: 0.82rem; }
 

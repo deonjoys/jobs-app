@@ -73,14 +73,20 @@ def uploaded_file(folder, filename):
     return send_from_directory(directories[folder], filename)
 
 
-ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'}
-VIDEO_EXT = {'mp4', 'webm', 'mov'}
+ALLOWED_EXT = {
+    'png', 'jpg', 'jpeg', 'webp', 'gif',
+    'mp4', 'webm', 'mov', 'm4v', 'ogv', 'ogg',
+}
+VIDEO_EXT = {'mp4', 'webm', 'mov', 'm4v', 'ogv', 'ogg'}
 VIDEO_MIME_TYPES = {
     'mp4': 'video/mp4',
     'webm': 'video/webm',
     'mov': 'video/quicktime',
+    'm4v': 'video/mp4',
+    'ogv': 'video/ogg',
+    'ogg': 'video/ogg',
 }
-app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB uploads
+app.config['MAX_CONTENT_LENGTH'] = 90 * 1024 * 1024  # Leave room under common 100MB host limits
 
 TRADES = ['Electrician','Mason', 'Plumber', 'Painter', 'Carpenter', 'Interior Decorator', 'AC Installer']
 AVAILABILITY_LABELS = {
@@ -226,6 +232,24 @@ def save_portfolio_thumbnail(file_storage):
     if file_storage.filename.rsplit('.', 1)[-1].lower() not in {'jpg', 'jpeg', 'png', 'webp'}:
         return None
     return save_upload(file_storage, PORTFOLIO_DIR)
+
+
+def save_portfolio_item(worker_id, file_storage, thumbnail_storage=None):
+    filename = save_upload(file_storage, PORTFOLIO_DIR)
+    if not filename:
+        return None
+
+    thumbnail_filename = None
+    if filename.rsplit('.', 1)[-1].lower() in VIDEO_EXT:
+        thumbnail_filename = save_portfolio_thumbnail(thumbnail_storage)
+
+    item = PortfolioImage(
+        worker_id=worker_id,
+        filename=filename,
+        thumbnail_filename=thumbnail_filename,
+    )
+    db.session.add(item)
+    return item
 
 
 def delete_file(folder, filename):
@@ -392,21 +416,12 @@ def add_worker():
         db.session.add(worker)
         db.session.flush()  # get worker.id before commit
 
-        for index, f in enumerate(request.files.getlist('portfolio_images')):
-            fname = save_upload(f, PORTFOLIO_DIR)
-            if fname:
-                thumbnail = (
-                    save_portfolio_thumbnail(request.files.get(f'portfolio_thumbnail_{index}'))
-                    if fname.rsplit('.', 1)[-1].lower() in VIDEO_EXT
-                    else None
-                )
-                db.session.add(
-                    PortfolioImage(
-                        worker_id=worker.id,
-                        filename=fname,
-                        thumbnail_filename=thumbnail,
-                    )
-                )
+        for index, uploaded_file in enumerate(request.files.getlist('portfolio_images')):
+            save_portfolio_item(
+                worker.id,
+                uploaded_file,
+                request.files.get(f'portfolio_thumbnail_{index}'),
+            )
 
         db.session.commit()
         flash(f"{worker.name} was added to the roster.", "success")
@@ -457,21 +472,12 @@ def edit_worker(worker_id):
             delete_file(WORKER_PHOTO_DIR, worker.photo_filename)
             worker.photo_filename = new_photo
 
-        for index, f in enumerate(request.files.getlist('portfolio_images')):
-            fname = save_upload(f, PORTFOLIO_DIR)
-            if fname:
-                thumbnail = (
-                    save_portfolio_thumbnail(request.files.get(f'portfolio_thumbnail_{index}'))
-                    if fname.rsplit('.', 1)[-1].lower() in VIDEO_EXT
-                    else None
-                )
-                db.session.add(
-                    PortfolioImage(
-                        worker_id=worker.id,
-                        filename=fname,
-                        thumbnail_filename=thumbnail,
-                    )
-                )
+        for index, uploaded_file in enumerate(request.files.getlist('portfolio_images')):
+            save_portfolio_item(
+                worker.id,
+                uploaded_file,
+                request.files.get(f'portfolio_thumbnail_{index}'),
+            )
 
         db.session.commit()
         flash(f"{worker.name}'s profile was updated.", "success")
@@ -518,33 +524,43 @@ def edit_portfolio_image(image_id):
     return redirect(url_for('edit_worker', worker_id=worker_id))
 
 
+@app.route('/admin/portfolio/<int:image_id>/thumbnail', methods=['POST'])
+def upload_portfolio_thumbnail(image_id):
+    image = db.get_or_404(PortfolioImage, image_id)
+    if image.file_type != 'video':
+        return jsonify({'error': 'Thumbnails can only be added to videos.'}), 400
+    thumbnail = save_portfolio_thumbnail(request.files.get('thumbnail'))
+    if not thumbnail:
+        return jsonify({'error': 'Upload a JPEG, PNG, or WebP thumbnail.'}), 400
+    delete_file(PORTFOLIO_DIR, image.thumbnail_filename)
+    image.thumbnail_filename = thumbnail
+    db.session.commit()
+    return jsonify({'thumbnail_url': image.thumbnail_url})
+
+
 @app.route('/admin/workers/<int:worker_id>/upload', methods=['POST'])
 def upload_portfolio_items(worker_id):
     worker = db.get_or_404(Worker, worker_id)
     files = request.files.getlist('files')
     created = []
     for index, f in enumerate(files):
-        fname = save_upload(f, PORTFOLIO_DIR)
-        if fname:
-            thumbnail = (
-                save_portfolio_thumbnail(request.files.get(f'thumbnail_{index}'))
-                if fname.rsplit('.', 1)[-1].lower() in VIDEO_EXT
-                else None
-            )
-            pi = PortfolioImage(
-                worker_id=worker.id,
-                filename=fname,
-                thumbnail_filename=thumbnail,
-            )
-            db.session.add(pi)
+        item = save_portfolio_item(
+            worker.id,
+            f,
+            request.files.get(f'thumbnail_{index}'),
+        )
+        if item:
             db.session.flush()
             created.append({
-                'id': pi.id,
-                'url': pi.url,
-                'thumbnail_url': pi.thumbnail_url,
-                'type': pi.file_type,
-                'caption': pi.caption or '',
+                'id': item.id,
+                'url': item.url,
+                'thumbnail_url': item.thumbnail_url,
+                'type': item.file_type,
+                'mime_type': item.mime_type,
+                'caption': item.caption or '',
             })
+    if files and not created:
+        return jsonify({'error': 'No supported images or videos were uploaded.'}), 400
     db.session.commit()
     return jsonify({'items': created})
 

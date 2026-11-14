@@ -132,15 +132,15 @@
         <label>{{ 'Add more portfolio media' if worker else 'Portfolio media' }}</label>
         <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
           <button type="button" id="add-portfolio-btn" class="btn-ghost">Add item</button>
-          <input type="file" name="portfolio_images" accept="image/*,video/*" multiple style="display:none;">
+          <input type="file" name="portfolio_images" accept="image/*,video/*,.mp4,.webm,.mov,.m4v,.ogv,.ogg" multiple style="display:none;">
           {% if not worker %}
           <div id="portfolio-thumbnail-inputs" hidden></div>
           {% endif %}
           {% if worker %}
-          <div id="portfolio-drop-zone" class="drop-zone">Drop files here or click Add item</div>
+          <span class="upload-hint">Choose one or more photos or videos.</span>
           {% endif %}
         </div>
-        <small>Select multiple images or short videos of past work — clients see these before booking. Use the Add button or drop files into the zone (on edit only).</small>
+        <small>Select photos and videos together. Choose Add item again to select more files.</small>
       </div>
 
       <div class="btn-row">
@@ -162,7 +162,6 @@
 document.addEventListener('DOMContentLoaded', function(){
   const addBtn = document.getElementById('add-portfolio-btn');
   const fileInput = document.querySelector('input[name="portfolio_images"]');
-  const dropZone = document.getElementById('portfolio-drop-zone');
   const thumbManager = document.querySelector('.thumb-manager');
   const formElement = fileInput.closest('form');
   const thumbnailInputs = document.getElementById('portfolio-thumbnail-inputs');
@@ -214,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
       video.muted = true;
       video.playsInline = true;
-      video.preload = 'auto';
+      video.preload = 'metadata';
       video.addEventListener('loadeddata', function onLoadedData(){
         video.removeEventListener('loadeddata', onLoadedData);
         const frameTime = Number.isFinite(video.duration) ? Math.min(0.1, video.duration / 2) : 0;
@@ -226,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function(){
         }
       });
       video.addEventListener('error', () => finish(null), {once: true});
-      timeout = setTimeout(() => finish(null), 15000);
+      timeout = setTimeout(() => finish(null), 4000);
       video.src = objectUrl;
     });
   }
@@ -263,28 +262,30 @@ document.addEventListener('DOMContentLoaded', function(){
     {% if worker %}
     const newFiles = Array.from(files);
     fileInput.value = '';
-    const thumbnails = await createThumbnails(newFiles);
     const form = new FormData();
     newFiles.forEach(file => form.append('files', file));
-    thumbnails.forEach(({index, file}) => form.append(`thumbnail_${index}`, file));
-    fetch('{{ url_for("upload_portfolio_items", worker_id=worker.id) }}', {
+    const uploadRequest = fetch('{{ url_for("upload_portfolio_items", worker_id=worker.id) }}', {
       method: 'POST',
       body: form,
       credentials: 'same-origin'
-    })
-      .then(response => {
-        if(!response.ok) throw new Error(`Upload failed (${response.status})`);
-        return response.json();
+    });
+    const thumbnailsRequest = createThumbnails(newFiles);
+    Promise.all([uploadRequest, thumbnailsRequest])
+      .then(async ([response, thumbnails]) => {
+        if(!response.ok){
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || `Upload failed (${response.status})`);
+        }
+        return {data: await response.json(), thumbnails: thumbnails};
       })
-      .then(data => {
+      .then(({data, thumbnails}) => {
+        const thumbnailsByIndex = new Map(thumbnails.map(({index, file}) => [index, file]));
         data.items.forEach(item => {
           const div = document.createElement('div');
           div.className = 'thumb-item';
           let inner = '';
           if(item.type === 'video'){
-            inner += item.thumbnail_url
-              ? `<img src="${item.thumbnail_url}" alt="Video thumbnail" class="thumb-video">`
-              : `<video controls src="${item.url}" class="thumb-video"></video>`;
+            inner += `<video controls playsinline preload="none" ${item.thumbnail_url ? `poster="${item.thumbnail_url}"` : ''} class="thumb-video"><source src="${item.url}" type="${item.mime_type}"></video>`;
           } else {
             inner += `<img src="${item.url}" alt="Portfolio item">`;
           }
@@ -299,12 +300,15 @@ document.addEventListener('DOMContentLoaded', function(){
           deleteForm.action = `/admin/portfolio/${item.id}/delete`;
           deleteForm.method = 'POST';
           formElement.after(deleteForm);
+          const thumbnail = thumbnailsByIndex.get(data.items.indexOf(item));
+          if(thumbnail){
+            uploadThumbnail(item.id, thumbnail, div, item.url, item.mime_type);
+          }
         });
-        fileInput.value = '';
       })
       .catch(error => {
         console.error(error);
-        alert('Could not upload portfolio media. Please try again.');
+        alert(error.message || 'Could not upload portfolio media. Please try again.');
       });
     {% else %}
     generatingThumbnails = true;
@@ -334,6 +338,35 @@ document.addEventListener('DOMContentLoaded', function(){
     {% endif %}
   }
 
+  function uploadThumbnail(itemId, thumbnail, card, videoUrl, mimeType){
+    const form = new FormData();
+    form.append('thumbnail', thumbnail);
+    fetch(`/admin/portfolio/${itemId}/thumbnail`, {
+      method: 'POST',
+      body: form,
+      credentials: 'same-origin'
+    })
+      .then(response => {
+        if(!response.ok) throw new Error(`Thumbnail upload failed (${response.status})`);
+        return response.json();
+      })
+      .then(data => {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'none';
+        video.className = 'thumb-video';
+        video.poster = data.thumbnail_url;
+        const source = document.createElement('source');
+        source.src = videoUrl;
+        source.type = mimeType;
+        video.appendChild(source);
+        const current = card.querySelector('video');
+        if(current) current.replaceWith(video);
+      })
+      .catch(error => console.error(error));
+  }
+
   if(addBtn && fileInput){
     addBtn.addEventListener('click', function(e){
       e.preventDefault();
@@ -359,12 +392,6 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   {% endif %}
 
-  if(dropZone){
-    dropZone.addEventListener('click', function(){ if(fileInput) fileInput.click(); });
-    dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.classList.add('drop-zone-active'); });
-    dropZone.addEventListener('dragleave', function(e){ dropZone.classList.remove('drop-zone-active'); });
-    dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('drop-zone-active'); const files = e.dataTransfer.files; uploadFiles(files); });
-  }
 });
 </script>
 

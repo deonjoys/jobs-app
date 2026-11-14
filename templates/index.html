@@ -121,6 +121,10 @@
   <div class="modal-card wide">
     <h3 id="portfolioTitle">Portfolio</h3>
     <p class="modal-sub">Past work from this pro.</p>
+    <div class="portfolio-modal-controls">
+      <button type="button" class="btn-ghost" id="portfolioModalPrevious">Previous</button>
+      <button type="button" class="btn-ghost" id="portfolioModalNext">Next</button>
+    </div>
     <div class="portfolio-gallery" id="portfolioGallery"></div>
     <div class="btn-row">
       <button type="button" class="btn-ghost" onclick="closePortfolio()" style="flex:1;">Close</button>
@@ -172,10 +176,24 @@ function openPortfolio(workerId, name) {
           </div>
         `;
       }).join('');
+      gallery.scrollLeft = 0;
     });
 }
 function closePortfolio() { document.getElementById('portfolioModal').style.display = 'none'; }
 
+function movePortfolio(direction) {
+  const gallery = document.getElementById('portfolioGallery');
+  const card = gallery.querySelector('.portfolio-media-card');
+  if(card) gallery.scrollBy({left: direction * (card.getBoundingClientRect().width + 12), behavior: 'smooth'});
+}
+document.getElementById('portfolioModalPrevious').addEventListener('click', () => movePortfolio(-1));
+document.getElementById('portfolioModalNext').addEventListener('click', () => movePortfolio(1));
+document.addEventListener('keydown', event => {
+  const modal = document.getElementById('portfolioModal');
+  if(modal.style.display !== 'flex') return;
+  if(event.key === 'ArrowLeft') movePortfolio(-1);
+  if(event.key === 'ArrowRight') movePortfolio(1);
+});
 document.getElementById('portfolioModal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closePortfolio();
 });
